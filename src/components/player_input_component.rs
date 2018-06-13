@@ -1,4 +1,4 @@
-use entities::entity_base::*;
+use entities::*;
 use handlers::*;
 use common::logger;
 
@@ -20,11 +20,11 @@ impl PlayerInputComponent {
         }
 
         if Input::is_pressed(Key::W) {
-            logger::info("Key D was pressed in PlayerInputComponent!");
+            logger::info("Key W was pressed in PlayerInputComponent!");
             entity.pos.y -= 5f32;
         }
         if Input::is_pressed(Key::S) {
-            logger::info("Key A was pressed in PlayerInputComponent!");
+            logger::info("Key S was pressed in PlayerInputComponent!");
             entity.pos.y += 5f32;
         }
     }

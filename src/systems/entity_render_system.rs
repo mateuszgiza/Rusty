@@ -1,5 +1,5 @@
 use sfml::graphics::*;
-use entities::entity_base::EntityBase;
+use entities::EntityBase;
 use std::cell::{RefCell, Ref};
 
 pub struct EntityRenderSystem;

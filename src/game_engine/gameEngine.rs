@@ -2,8 +2,8 @@ use game_engine::IGameEngine;
 
 use common::logger;
 use handlers::*;
-use entities::ball::Ball;
-use components::player_input_component::PlayerInputComponent;
+use entities::Ball;
+use components::PlayerInputComponent;
 use systems::*;
 use std::cell::RefCell;
 

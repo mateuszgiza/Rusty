@@ -1,4 +1,4 @@
-use entities::entity_base::EntityBase;
+use entities::EntityBase;
 
 use sfml::graphics::*;
 use std::cell::RefCell;

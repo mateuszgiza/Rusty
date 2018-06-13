@@ -1,4 +1,4 @@
-use entities::entity_base::EntityBase;
+use entities::EntityBase;
 
 pub struct Ball<'a> {
     pub base: EntityBase<'a>,
