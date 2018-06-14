@@ -6,7 +6,7 @@ pub struct EntityRenderSystem;
 
 impl EntityRenderSystem {
     pub fn render(window: &mut RenderWindow, entities: &Vec<RefCell<EntityBase>>) {
-        for ref entity in entities {
+        for entity in entities {
             window.draw(&*entity.borrow());
         }
     }

@@ -2,6 +2,7 @@ use common::logger;
 pub use sfml::window::{Event, Key};
 use sfml::graphics::{RenderWindow};
 use std::sync::Mutex;
+use components::*;
 
 pub struct KeyInfo {
     pub key: Key,
@@ -54,5 +55,9 @@ impl Input {
         }
 
         return false;
+    }
+
+    pub fn log_pressed_key<T: Component>(key: Key) {
+        logger::info(&format!("Key {key:?} was pressed in {componentName}!", key=key, componentName=T::name()));
     }
 }
