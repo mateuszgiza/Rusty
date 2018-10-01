@@ -5,14 +5,12 @@ extern crate specs;
 #[macro_use]
 extern crate lazy_static;
 
-use specs::Write;
 use sdl2::pixels::Color;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use std::time::Duration;
-use sdl2::rect::Rect;
 
-use specs::{World, Builder, System, ReadStorage, WriteStorage, DispatcherBuilder, Read};
+use specs::{World, Builder, DispatcherBuilder};
 
 mod components;
 use components::{ Position, Velocity };
@@ -21,7 +19,7 @@ mod systems;
 use systems::{ UpdatePos, HelloWorld };
 
 mod resources;
-use resources::{ DeltaTime, Draw, DrawContainer };
+use resources::{ DeltaTime, DrawContainer };
 
 fn main() {
     let sdl_context = sdl2::init().unwrap();
@@ -87,9 +85,9 @@ fn main() {
         canvas.set_draw_color(Color::RGB(i, 64, 255 - i));
         canvas.clear();
 
-        let drawContainer = world.read_resource::<DrawContainer>();
+        let draw_container = world.read_resource::<DrawContainer>();
 
-        for draw in &drawContainer.instructions {
+        for draw in &draw_container.instructions {
             canvas.set_draw_color(draw.color);
             canvas.fill_rect(draw.rect);
         }
