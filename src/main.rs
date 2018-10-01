@@ -14,8 +14,14 @@ use sdl2::rect::Rect;
 
 use specs::{World, Builder, System, ReadStorage, WriteStorage, DispatcherBuilder, Read};
 
-pub mod components;
+mod components;
 use components::{ Position, Velocity };
+
+mod systems;
+use systems::{ UpdatePos, HelloWorld };
+
+mod resources;
+use resources::{ DeltaTime, Draw, DrawContainer };
 
 fn main() {
     let sdl_context = sdl2::init().unwrap();
@@ -98,70 +104,4 @@ fn main() {
 fn update_delta_time(world: &mut World, new_delta: f32) {
     let mut delta = world.write_resource::<DeltaTime>();
     *delta = DeltaTime(new_delta);
-}
-
-struct Draw {
-    color: Color,
-    rect: Rect
-}
-
-impl Default for Draw {
-    fn default() -> Self { Draw { color: Color::RGB(0, 0, 0), rect: Rect::new(0, 0, 0, 0) } }
-}
-
-#[derive(Default)]
-struct DrawContainer {
-    instructions: Vec<Draw>
-}
-
-impl DrawContainer {
-    fn insert(&mut self, draw: Draw) {
-        self.instructions.push(draw);
-    }
-
-    fn clear(&mut self) {
-        self.instructions.clear();
-    }
-}
-
-#[derive(Default)]
-struct DeltaTime(f32); // Change to std::time::Duration
-
-struct HelloWorld;
-
-impl<'a> System<'a> for HelloWorld {
-    type SystemData = ReadStorage<'a, Position>;
-
-    fn run(&mut self, position: Self::SystemData) {
-        use specs::Join;
-
-        for position in position.join() {
-            println!("Hello, {:?}", &position);
-        }
-    }
-}
-
-struct UpdatePos;
-
-impl<'a> System<'a> for UpdatePos {
-    type SystemData = (
-        Read<'a, DeltaTime>,
-        Write<'a, DrawContainer>,
-        ReadStorage<'a, Velocity>,
-        WriteStorage<'a, Position>
-    );
-
-    fn run (&mut self, data: Self::SystemData) {
-        use specs::Join;
-
-        let (delta, mut draw_container, vel, mut pos) = data;
-        let delta = delta.0;
-
-        for (vel, pos) in (&vel, &mut pos).join() {
-            pos.x += vel.x * delta;
-            pos.y += vel.y * delta;
-
-            draw_container.insert(Draw { color: Color::RGB(255, 0, 0), rect: Rect::new(pos.x as i32, pos.y as i32, 100, 50) });
-        }
-    }
 }
