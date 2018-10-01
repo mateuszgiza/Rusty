@@ -16,10 +16,10 @@ use std::time::Duration;
 use specs::{World, Builder, DispatcherBuilder};
 
 mod components;
-use components::{ Position, Velocity };
+use components::{ Position, Velocity, Draw, Size };
 
 mod systems;
-use systems::{ UpdatePos, HelloWorld };
+use systems::{ UpdatePos, HelloWorld, DrawSystem };
 
 mod resources;
 use resources::{ DeltaTime, DrawContainer };
@@ -44,6 +44,8 @@ fn main() {
     let mut world = World::new();
     world.register::<Position>();
     world.register::<Velocity>();
+    world.register::<Draw>();
+    world.register::<Size>();
 
     world.add_resource(DeltaTime(0.05));
     world.add_resource(DrawContainer::default());
@@ -52,12 +54,15 @@ fn main() {
     world.create_entity()
         .with(Position { x: 2.0, y: 5.0 })
         .with(Velocity { x: 2.0, y: 1.0 })
+        .with(Size { width: 100, height: 50 })
+        .with(Draw { color: Color::RGB(255, 0, 0) })
         .build();
 
     let mut dispatcher = DispatcherBuilder::new()
         // .with(HelloWorld, "hello_world", &[])
         .with(UpdatePos, "update_pos", &[])
         // .with(HelloWorld, "hello_updated", &["update_pos"])
+        .with(DrawSystem, "draw_system", &["update_pos"])
         .build();
 
     update_delta_time(&mut world, 1.0);
@@ -91,8 +96,7 @@ fn main() {
         let draw_container = world.read_resource::<DrawContainer>();
 
         for draw in &draw_container.instructions {
-            canvas.set_draw_color(draw.color);
-            canvas.fill_rect(draw.rect);
+            (*draw)(&mut canvas);
         }
 
         canvas.present();
