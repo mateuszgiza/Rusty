@@ -12,7 +12,10 @@ use sdl2::keyboard::Keycode;
 use std::time::Duration;
 use sdl2::rect::Rect;
 
-use specs::{Component, VecStorage, World, Builder, System, ReadStorage, WriteStorage, DispatcherBuilder, Read};
+use specs::{World, Builder, System, ReadStorage, WriteStorage, DispatcherBuilder, Read};
+
+pub mod components;
+use components::{ Position, Velocity };
 
 fn main() {
     let sdl_context = sdl2::init().unwrap();
@@ -51,8 +54,6 @@ fn main() {
         .build();
 
     update_delta_time(&mut world, 1.0);
-
-    
 
     // end ECS
 
@@ -126,26 +127,6 @@ impl DrawContainer {
 #[derive(Default)]
 struct DeltaTime(f32); // Change to std::time::Duration
 
-#[derive(Debug)]
-struct Position {
-    x: f32,
-    y: f32
-}
-
-impl Component for Position {
-    type Storage = VecStorage<Self>;
-}
-
-#[derive(Debug)]
-struct Velocity {
-    x: f32,
-    y: f32
-}
-
-impl Component for Velocity {
-    type Storage = VecStorage<Self>;
-}
-
 struct HelloWorld;
 
 impl<'a> System<'a> for HelloWorld {
@@ -173,14 +154,14 @@ impl<'a> System<'a> for UpdatePos {
     fn run (&mut self, data: Self::SystemData) {
         use specs::Join;
 
-        let (delta, mut drawContainer, vel, mut pos) = data;
+        let (delta, mut draw_container, vel, mut pos) = data;
         let delta = delta.0;
 
         for (vel, pos) in (&vel, &mut pos).join() {
             pos.x += vel.x * delta;
             pos.y += vel.y * delta;
 
-            drawContainer.insert(Draw { color: Color::RGB(255, 0, 0), rect: Rect::new(pos.x as i32, pos.y as i32, 100, 50) });
+            draw_container.insert(Draw { color: Color::RGB(255, 0, 0), rect: Rect::new(pos.x as i32, pos.y as i32, 100, 50) });
         }
     }
 }
