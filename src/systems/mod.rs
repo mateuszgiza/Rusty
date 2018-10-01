@@ -1,25 +1,41 @@
 use specs::{ System, Read, Write, ReadStorage, WriteStorage };
 use components::{ Position, Velocity, Draw, Size };
-use resources::{ DeltaTime, DrawContainer };
+use resources::{ DeltaTime, DrawContainer, WindowSize };
 
 pub struct UpdatePos;
 
 impl<'a> System<'a> for UpdatePos {
     type SystemData = (
         Read<'a, DeltaTime>,
-        ReadStorage<'a, Velocity>,
-        WriteStorage<'a, Position>
+        Read<'a, WindowSize>,
+        WriteStorage<'a, Velocity>,
+        WriteStorage<'a, Position>,
+        ReadStorage<'a, Size>
     );
 
     fn run (&mut self, data: Self::SystemData) {
         use specs::Join;
 
-        let (delta, vel, mut pos) = data;
+        let (delta, window_size, mut vel, mut pos, size) = data;
         let delta = delta.0;
+        let window_size = window_size.0;
 
-        for (vel, pos) in (&vel, &mut pos).join() {
+        for (vel, pos, size) in (&mut vel, &mut pos, &size).join() {
             pos.x += vel.x * delta;
             pos.y += vel.y * delta;
+
+            if (pos.x <= 0 as f32 && vel.x < 0 as f32) {
+                vel.x = -vel.x;
+            }
+            if (pos.y <= 0 as f32 && vel.y < 0 as f32) {
+                vel.y = -vel.y;
+            }
+            if (pos.x + size.width as f32 > window_size.0 as f32) {
+                vel.x = -vel.x;
+            }
+            if (pos.y + size.height as f32 > window_size.1 as f32) {
+                vel.y = -vel.y;
+            }
         }
     }
 }

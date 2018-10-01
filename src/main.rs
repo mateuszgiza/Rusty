@@ -21,7 +21,7 @@ mod systems;
 use systems::{ UpdatePos, DrawSystem };
 
 mod resources;
-use resources::{ DeltaTime, DrawContainer };
+use resources::{ DeltaTime, DrawContainer, WindowSize };
 
 fn main() {
     let sdl_context = sdl2::init().unwrap();
@@ -32,6 +32,7 @@ fn main() {
         .build()
         .unwrap();
 
+    let window_size = window.size();
     let mut canvas = window.into_canvas().build().unwrap();
 
     canvas.set_draw_color(Color::RGB(0, 255, 255));
@@ -48,6 +49,7 @@ fn main() {
 
     world.add_resource(DeltaTime(0.05));
     world.add_resource(DrawContainer::default());
+    world.add_resource(WindowSize(window_size));
 
     world.create_entity()
         .with(Position { x: 4.0, y: 7.0 })

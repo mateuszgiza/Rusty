@@ -5,6 +5,9 @@ use sdl2::video::Window;
 pub struct DeltaTime(pub f32); // Change to std::time::Duration
 
 #[derive(Default)]
+pub struct WindowSize(pub (u32, u32));
+
+#[derive(Default)]
 pub struct DrawContainer {
     pub instructions: Vec<Box<Fn(&mut Canvas<Window>) + Send + Sync>>
 }
