@@ -2,20 +2,6 @@ use specs::{ System, Read, Write, ReadStorage, WriteStorage };
 use components::{ Position, Velocity, Draw, Size };
 use resources::{ DeltaTime, DrawContainer };
 
-pub struct HelloWorld;
-
-impl<'a> System<'a> for HelloWorld {
-    type SystemData = ReadStorage<'a, Position>;
-
-    fn run(&mut self, position: Self::SystemData) {
-        use specs::Join;
-
-        for position in position.join() {
-            println!("Hello, {:?}", &position);
-        }
-    }
-}
-
 pub struct UpdatePos;
 
 impl<'a> System<'a> for UpdatePos {
@@ -57,9 +43,13 @@ impl<'a> System<'a> for DrawSystem {
         for (pos, size, draw) in (&pos, &size, &draw).join() {
             let rect = Rect::new(pos.x as i32, pos.y as i32, size.width as u32, size.height as u32);
             let color = draw.color;
-            draw_container.insert(move |mut canvas| {
+            draw_container.insert(move |canvas| {
                 canvas.set_draw_color(color);
-                canvas.fill_rect(rect);
+                let res = canvas.fill_rect(rect);
+                match res {
+                    Ok(_) => {},
+                    Err(e) => {println!("{}", e)}
+                }
             });
         }
     }

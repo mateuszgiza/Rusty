@@ -2,7 +2,6 @@ extern crate sdl2;
 extern crate chrono;
 extern crate specs;
 
-#[macro_use]
 extern crate lazy_static;
 
 #[macro_use]
@@ -19,7 +18,7 @@ mod components;
 use components::{ Position, Velocity, Draw, Size };
 
 mod systems;
-use systems::{ UpdatePos, HelloWorld, DrawSystem };
+use systems::{ UpdatePos, DrawSystem };
 
 mod resources;
 use resources::{ DeltaTime, DrawContainer };
@@ -50,7 +49,11 @@ fn main() {
     world.add_resource(DeltaTime(0.05));
     world.add_resource(DrawContainer::default());
 
-    world.create_entity().with(Position { x: 4.0, y: 7.0 }).build();
+    world.create_entity()
+        .with(Position { x: 4.0, y: 7.0 })
+        .with(Size { width: 50, height: 50 })
+        .with(Draw { color: Color::RGB(0, 255, 0) })
+        .build();
     world.create_entity()
         .with(Position { x: 2.0, y: 5.0 })
         .with(Velocity { x: 2.0, y: 1.0 })
@@ -59,9 +62,7 @@ fn main() {
         .build();
 
     let mut dispatcher = DispatcherBuilder::new()
-        // .with(HelloWorld, "hello_world", &[])
         .with(UpdatePos, "update_pos", &[])
-        // .with(HelloWorld, "hello_updated", &["update_pos"])
         .with(DrawSystem, "draw_system", &["update_pos"])
         .build();
 
