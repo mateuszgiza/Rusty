@@ -5,6 +5,9 @@ extern crate specs;
 #[macro_use]
 extern crate lazy_static;
 
+#[macro_use]
+extern crate specs_derive;
+
 use sdl2::pixels::Color;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
