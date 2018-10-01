@@ -1,4 +1,4 @@
-use specs::{ Component, VecStorage };
+use specs::{ VecStorage };
 
 use sdl2::pixels::Color;
 use sdl2::rect::Rect;
