@@ -6,6 +6,10 @@ authors = ["mateu"]
 [dependencies]
 chrono = "0.4.6"
 lazy_static = "1.1.0"
-sdl2 = "0.31"
 specs = "0.12.3"
 specs-derive = "0.2.0"
+
+[dependencies.sdl2]
+    version = "0.31"
+    default-features = false
+    features = ["ttf","image","gfx","mixer"]

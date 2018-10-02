@@ -12,6 +12,10 @@ use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use std::time::Duration;
 
+use sdl2::ttf::*;
+use sdl2::render::{ Canvas, TextureCreator, TextureQuery };
+use sdl2::video::{ Window, WindowContext };
+
 use specs::{World, Builder, DispatcherBuilder};
 
 mod components;
@@ -33,7 +37,7 @@ fn main() {
         .unwrap();
 
     let window_size = window.size();
-    let mut canvas = window.into_canvas().build().unwrap();
+    let mut canvas: Canvas<Window> = window.into_canvas().build().unwrap();
 
     canvas.set_draw_color(Color::RGB(0, 255, 255));
     canvas.clear();
@@ -72,6 +76,17 @@ fn main() {
 
     // end ECS
 
+    let font_context = sdl2::ttf::init().expect("ttf could not be initialized");
+    let font = font_context.load_font("SpaceMono-Regular.ttf", 24).expect("could not load font");
+    let font_color = Color::RGB(255, 255, 255);
+    let message_render = font.render("Font test");
+    let message_surface = message_render.solid(font_color).expect("error rendering message");
+
+    let texture_creator: TextureCreator<WindowContext> = canvas.texture_creator();
+    let message_texture = texture_creator.create_texture_from_surface(&message_surface).expect("could not create texture from surface");
+    let texture_query = message_texture.query();
+    let message_target = sdl2::rect::Rect::new(50, 50, texture_query.width, texture_query.height);
+    
     let mut event_pump = sdl_context.event_pump().unwrap();
     let mut i = 0;
 
@@ -101,6 +116,8 @@ fn main() {
         for draw in &draw_container.instructions {
             (*draw)(&mut canvas);
         }
+
+        canvas.copy(&message_texture, None, Some(message_target)).expect("could not copy texture to canvas");
 
         canvas.present();
         ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
