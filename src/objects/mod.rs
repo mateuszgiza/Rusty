@@ -26,8 +26,8 @@ impl<'ttf> FontManager<'ttf> {
         }
     }
 
-    pub fn get_font(&self, font_name: String) -> &Font {
-        let font_index = self.font_names.iter().position(|ref f| f == &&font_name).unwrap();
+    pub fn get_font(&self, font_name: &str) -> &Font {
+        let font_index = self.font_names.iter().position(|ref f| f == &font_name).unwrap();
         return &self.fonts[font_index];
     }
 
