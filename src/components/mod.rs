@@ -1,7 +1,30 @@
-pub mod player_input_component;
+use specs::{ VecStorage };
 
-pub use self::player_input_component::PlayerInputComponent;
+use sdl2::pixels::Color;
 
-pub trait Component {
-    fn name() -> &'static str;
+#[derive(Component, Debug)]
+#[storage(VecStorage)]
+pub struct Position {
+    pub x: f32,
+    pub y: f32
+}
+
+#[derive(Component, Debug)]
+#[storage(VecStorage)]
+pub struct Size {
+    pub width: i32,
+    pub height: i32
+}
+
+#[derive(Component, Debug)]
+#[storage(VecStorage)]
+pub struct Velocity {
+    pub x: f32,
+    pub y: f32
+}
+
+#[derive(Component, Debug)]
+#[storage(VecStorage)]
+pub struct Draw {
+    pub color: Color
 }
