@@ -27,6 +27,9 @@ use systems::{ UpdatePos, DrawSystem };
 mod resources;
 use resources::{ DeltaTime, DrawContainer, WindowSize };
 
+mod objects;
+use objects::*;
+
 fn main() {
     let sdl_context = sdl2::init().unwrap();
     let video_subsystem = sdl_context.video().unwrap();
@@ -76,12 +79,18 @@ fn main() {
 
     // end ECS
 
-    let font_context = sdl2::ttf::init().expect("ttf could not be initialized");
-    let font = font_context.load_font("SpaceMono-Regular.ttf", 24).expect("could not load font");
+    let font_context = sdl2::ttf::init().expect("could not initialize TtfContext");
+    let mut font_manager = FontManager::new(&font_context);
+    font_manager.load_fonts(vec![String::from("SpaceMono-Regular.ttf")], 24);
+
+    let font = font_manager.get_font(String::from("SpaceMono-Regular"));
     let font_color = Color::RGB(255, 255, 255);
+
+    // TEXT
     let message_render = font.render("Font test");
     let message_surface = message_render.solid(font_color).expect("error rendering message");
 
+    // TEXT::CREATE
     let texture_creator: TextureCreator<WindowContext> = canvas.texture_creator();
     let message_texture = texture_creator.create_texture_from_surface(&message_surface).expect("could not create texture from surface");
     let texture_query = message_texture.query();
