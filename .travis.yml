@@ -2,11 +2,16 @@ language: rust
 rust:
   - stable
 cache: cargo
-
-before_install:
-  - sudo apt install -y libegl1-mesa-dev libgles2-mesa-dev
-  - sudo apt install -y libsdl2-dev libsdl2-gfx-dev libsdl2-mixer-dev libsdl2-ttf-dev libsdl2-image-dev
   
 addons:
   apt:
     update: true
+    cache: true
+    packages:
+      - libegl1-mesa-dev
+      - libgles2-mesa-dev
+      - libsdl2-dev
+      - libsdl2-gfx-dev
+      - libsdl2-mixer-dev
+      - libsdl2-image-dev
+      - libsdl2-ttf-dev
