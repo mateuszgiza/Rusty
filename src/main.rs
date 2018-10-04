@@ -33,6 +33,9 @@ mod common;
 use common::fonts;
 use common::fonts::ttf;
 
+mod builders;
+use builders::*;
+
 fn main() {
     let sdl_context = sdl2::init().unwrap();
     let video_subsystem = sdl_context.video().unwrap();
@@ -86,16 +89,13 @@ fn main() {
     let mut font_manager = FontManager::new(&font_context);
     font_manager.load_fonts(vec![ttf(fonts::SPACE_MONO_REGULAR)], 24);
 
+    let text_builder = TextBuilder::new(&canvas, &font_manager);
+
     let font = font_manager.get_font(fonts::SPACE_MONO_REGULAR);
     let font_color = Color::RGB(255, 255, 255);
 
-    // TEXT
-    let message_render = font.render("Font test");
-    let message_surface = message_render.solid(font_color).expect("error rendering message");
-
     // TEXT::CREATE
-    let texture_creator: TextureCreator<WindowContext> = canvas.texture_creator();
-    let message_texture = texture_creator.create_texture_from_surface(&message_surface).expect("could not create texture from surface");
+    let message_texture = text_builder.build_text("ELO xD", fonts::SPACE_MONO_REGULAR, &font_color);
     let texture_query = message_texture.query();
     let message_target = sdl2::rect::Rect::new(50, 50, texture_query.width, texture_query.height);
     
