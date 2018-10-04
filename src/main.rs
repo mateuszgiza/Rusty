@@ -12,7 +12,6 @@ use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use std::time::Duration;
 
-use sdl2::ttf::*;
 use sdl2::render::{ Canvas, TextureCreator, TextureQuery };
 use sdl2::video::{ Window, WindowContext };
 
@@ -29,6 +28,10 @@ use resources::{ DeltaTime, DrawContainer, WindowSize };
 
 mod objects;
 use objects::*;
+
+mod common;
+use common::fonts;
+use common::fonts::ttf;
 
 fn main() {
     let sdl_context = sdl2::init().unwrap();
@@ -81,9 +84,9 @@ fn main() {
 
     let font_context = sdl2::ttf::init().expect("could not initialize TtfContext");
     let mut font_manager = FontManager::new(&font_context);
-    font_manager.load_fonts(vec![String::from("SpaceMono-Regular.ttf")], 24);
+    font_manager.load_fonts(vec![ttf(fonts::SPACE_MONO_REGULAR)], 24);
 
-    let font = font_manager.get_font(String::from("SpaceMono-Regular"));
+    let font = font_manager.get_font(fonts::SPACE_MONO_REGULAR);
     let font_color = Color::RGB(255, 255, 255);
 
     // TEXT
