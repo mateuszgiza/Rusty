@@ -1,6 +1,8 @@
 use sdl2::ttf::Font;
 use sdl2::ttf::Sdl2TtfContext;
 
+mod text;
+
 pub struct FontManager<'ttf> {
     font_context: &'ttf Sdl2TtfContext,
     font_names: Vec<String>,
