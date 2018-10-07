@@ -1,6 +1,11 @@
+use resources::CanvasHolder;
+use builders::{ TextBuilder, TextTexture };
 use specs::{ System, Read, Write, ReadStorage, WriteStorage };
-use components::{ Position, Velocity, Draw, Size };
+use components::{ Position, Velocity, Draw, Size, Text };
 use resources::{ DeltaTime, DrawContainer, WindowSize };
+
+use sdl2::render::{ Canvas, TextureCreator, TextureQuery };
+use sdl2::video::{ Window, WindowContext };
 
 pub struct UpdatePos;
 
@@ -44,7 +49,7 @@ pub struct DrawSystem;
 
 impl<'a> System<'a> for DrawSystem {
     type SystemData = (
-        Write<'a, DrawContainer>,
+        Write<'a, CanvasHolder>,
         ReadStorage<'a, Position>,
         ReadStorage<'a, Size>,
         ReadStorage<'a, Draw>
@@ -54,19 +59,51 @@ impl<'a> System<'a> for DrawSystem {
         use specs::Join;
         use sdl2::rect::Rect;
 
-        let (mut draw_container, pos, size, draw) = data;
+        let (mut canvas_holder, pos, size, draw) = data;
 
         for (pos, size, draw) in (&pos, &size, &draw).join() {
             let rect = Rect::new(pos.x as i32, pos.y as i32, size.width as u32, size.height as u32);
             let color = draw.color;
-            draw_container.insert(move |canvas| {
-                canvas.set_draw_color(color);
-                let res = canvas.fill_rect(rect);
-                match res {
-                    Ok(_) => {},
-                    Err(e) => {println!("{}", e)}
-                }
-            });
+
+            let canvas = canvas_holder.borrow().unwrap();
+            canvas.set_draw_color(color);
+            let res = canvas.fill_rect(rect);
+        }
+    }
+}
+
+pub struct TextRenderSystem<'b> {
+    text_builder: TextBuilder<'b>
+}
+
+impl<'b> TextRenderSystem<'b> {
+    pub fn new(text_builder: TextBuilder<'b>) -> Self {
+        TextRenderSystem {
+            text_builder: text_builder
+        }
+    }
+}
+
+impl<'a, 'b> System<'a> for TextRenderSystem<'b> {
+    type SystemData = (
+        Write<'a, CanvasHolder>,
+        ReadStorage<'a, Text>,
+        ReadStorage<'a, Position>
+    );
+
+    fn run<'c>(&'c mut self, data: Self::SystemData) {
+        use specs::Join;
+        use sdl2::rect::Rect;
+
+        let (mut canvas_holder, text, pos) = data;
+
+        for (text, pos) in (&text, &pos).join() {
+            let Text { text, offset, color, font } = text;
+            let text_texture: TextTexture<'c> = self.text_builder.build_text(text, font, color);
+            let message_target = Rect::new(pos.x as i32 + offset.x, pos.y as i32 + offset.y, text_texture.query.width, text_texture.query.height);
+
+            let texture = text_texture.texture;
+            canvas_holder.borrow().unwrap().copy(&texture, None, Some(message_target)).expect("could not copy texture to canvas");
         }
     }
 }
