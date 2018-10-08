@@ -11,7 +11,7 @@ use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::Color;
 use specs::Dispatcher;
-use std::time::Duration;
+use std::time::{ Duration, Instant };
 
 use sdl2::rect::Point;
 use sdl2::render::{Canvas, TextureCreator, TextureQuery};
@@ -20,10 +20,10 @@ use sdl2::video::{Window, WindowContext};
 use specs::{Builder, DispatcherBuilder, World};
 
 mod components;
-use components::{Draw, Position, Size, Text, Velocity};
+use components::{ Draw, Position, Size, Text, Velocity, FPS };
 
 mod systems;
-use systems::{DrawSystem, TextRenderSystem, UpdatePos};
+use systems::{ DrawSystem, TextRenderSystem, UpdatePos, FpsCounter };
 
 mod resources;
 use resources::{CanvasHolder, DeltaTime, DrawContainer, WindowSize};
@@ -37,6 +37,9 @@ use common::fonts::ttf;
 
 mod builders;
 use builders::*;
+
+mod helpers;
+use helpers::*;
 
 fn main() {
     let sdl_context = sdl2::init().unwrap();
@@ -70,12 +73,18 @@ fn main() {
     world.register::<Draw>();
     world.register::<Size>();
     world.register::<Text>();
+    world.register::<FPS>();
 
-    world.add_resource(DeltaTime(0.05));
+    world.add_resource(DeltaTime::new(None));
     world.add_resource(DrawContainer::default());
     world.add_resource(WindowSize(window_size));
     world.add_resource(CanvasHolder::new(Some(canvas)));
 
+    world.create_entity()
+        .with(Position { x: 0.0, y: 0.0 })
+        .with(FPS::new(Duration::from_secs(1)))
+        .with(Text { text: "FPS: 0".to_string(), offset: Point::new(0, 0), color: font_color, font: fonts::SPACE_MONO_REGULAR.to_string()})
+        .build();
     world.create_entity()
         .with(Position { x: 4.0, y: 7.0 })
         .with(Size { width: 50, height: 50 })
@@ -83,19 +92,19 @@ fn main() {
         .build();
     world.create_entity()
         .with(Position { x: 2.0, y: 5.0 })
-        .with(Velocity { x: 2.0, y: 1.0 })
+        .with(Velocity { x: 50.0, y: 30.0 })
         .with(Size { width: 100, height: 50 })
         .with(Draw { color: Color::RGB(255, 0, 0) })
         .with(Text { text: "Elo xD".to_string(), offset: Point::new(0, -50), color: font_color, font: fonts::SPACE_MONO_REGULAR.to_string()})
         .build();
 
     let mut dispatcher: Dispatcher<'_, '_> = DispatcherBuilder::new()
+        .with(FpsCounter::new(), "fps_counter", &[])
         .with(UpdatePos, "update_pos", &[])
         .with(DrawSystem, "draw_system", &["update_pos"])
         .with_thread_local(TextRenderSystem::new(text_builder))
         .build();
 
-    update_delta_time(&mut world, 1.0);
 
     // end ECS
 
@@ -103,6 +112,8 @@ fn main() {
     let mut i = 0;
 
     'running: loop {
+        let start_time = Instant::now();
+
         i = (i + 1) % 255;
 
         for event in event_pump.poll_iter() {
@@ -116,29 +127,33 @@ fn main() {
             }
         }
 
-        world.write_resource::<DrawContainer>().clear();
-        {
-            let mut canvas_holder = world.write_resource::<CanvasHolder>();
-            let canvas = canvas_holder.borrow().unwrap();
+        canvas::proceed_on_canvas(&world, |canvas| {
             canvas.set_draw_color(Color::RGB(i, 64, 255 - i));
             canvas.clear();
-        }
+        });
 
         dispatcher.dispatch(&mut world.res);
         world.maintain();
 
-        world.write_resource::<CanvasHolder>()
-            .borrow()
-            .unwrap()
-            .present();
-        
-        ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
+        canvas::proceed_on_canvas(&world, |canvas| canvas.present());
+
+        let end_time = Instant::now();
+        let elapsed_time = end_time - start_time;
+        let frame_time = Duration::from_nanos(1_000_000_000u64 / 60);
+        let time_to_sleep = frame_time - elapsed_time;
+        ::std::thread::sleep(time_to_sleep);
+
+        let end_time2 = Instant::now();
+        let elapsed_time2 = end_time2 - start_time;
+        update_delta_time(&mut world, elapsed_time2);
+
+        // println!("Logic time: {:?} | Dest frame time: {:?} | Sleep time: {:?} | Full frame time: {:?}", elapsed_time, frame_time, time_to_sleep, elapsed_time2);
     }
 
     println!("#: Closing Rusty...");
 }
 
-fn update_delta_time(world: &mut World, new_delta: f32) {
+fn update_delta_time(world: &mut World, new_delta: Duration) {
     let mut delta = world.write_resource::<DeltaTime>();
-    *delta = DeltaTime(new_delta);
+    *delta = DeltaTime::new(Some(new_delta));
 }

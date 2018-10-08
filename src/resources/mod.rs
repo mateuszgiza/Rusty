@@ -1,9 +1,23 @@
+use std::time::Duration;
 use std::any::Any;
 use sdl2::render::Canvas;
 use sdl2::video::Window;
 
 #[derive(Default)]
-pub struct DeltaTime(pub f32); // Change to std::time::Duration
+pub struct DeltaTime {
+    pub elapsed: Duration
+}
+
+impl DeltaTime {
+    pub fn new(elapsed: Option<Duration>) -> Self {
+        DeltaTime {
+            elapsed: match elapsed {
+                Some(duration) => duration,
+                None => Duration::from_nanos(0)
+            }
+        }
+    }
+}
 
 #[derive(Default)]
 pub struct WindowSize(pub (u32, u32));

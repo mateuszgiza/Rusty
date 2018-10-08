@@ -1,11 +1,14 @@
+use std::time::Duration;
 use resources::CanvasHolder;
 use builders::{ TextBuilder, TextTexture };
 use specs::{ System, Read, Write, ReadStorage, WriteStorage };
-use components::{ Position, Velocity, Draw, Size, Text };
+use components::{ Position, Velocity, Draw, Size, Text, FPS };
 use resources::{ DeltaTime, DrawContainer, WindowSize };
 
 use sdl2::render::{ Canvas, TextureCreator, TextureQuery };
 use sdl2::video::{ Window, WindowContext };
+
+use helpers::convert::*;
 
 pub struct UpdatePos;
 
@@ -22,7 +25,7 @@ impl<'a> System<'a> for UpdatePos {
         use specs::Join;
 
         let (delta, window_size, mut vel, mut pos, size) = data;
-        let delta = delta.0;
+        let delta = duration_to_f32(&delta.elapsed);
         let window_size = window_size.0;
 
         for (vel, pos, size) in (&mut vel, &mut pos, &size).join() {
@@ -104,6 +107,47 @@ impl<'a, 'b> System<'a> for TextRenderSystem<'b> {
 
             let texture = text_texture.texture;
             canvas_holder.borrow().unwrap().copy(&texture, None, Some(message_target)).expect("could not copy texture to canvas");
+        }
+    }
+}
+
+pub struct FpsCounter {
+    counter: u16,
+    elapsed_time: Duration
+}
+
+impl FpsCounter {
+    pub fn new() -> Self {
+        FpsCounter {
+            counter: 0,
+            elapsed_time: Duration::from_nanos(0)
+        }
+    }
+}
+
+impl<'a> System<'a> for FpsCounter {
+    type SystemData = (
+        Read<'a, DeltaTime>,
+        WriteStorage<'a, Text>,
+        WriteStorage<'a, FPS>
+    );
+
+    fn run(&mut self, data: Self::SystemData) {
+        use specs::Join;
+
+        let (delta, mut text, mut fps) = data;
+
+        self.counter += 1;
+        self.elapsed_time += delta.elapsed;
+
+        for (text, fps) in (&mut text, &mut fps).join() {
+            if (self.elapsed_time >= fps.probe_time) {
+                fps.fps_count = self.counter;
+                self.counter = 0;
+                self.elapsed_time -= fps.probe_time;
+
+                text.text = format!("FPS: {} | frame_time: {:?}ms", fps.fps_count, (delta.elapsed.subsec_nanos() as f32 / 1_000_000.0 * 100.0).round() / 100.0);
+            }
         }
     }
 }
