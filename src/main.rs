@@ -178,7 +178,7 @@ impl FrameTimer {
             self.time_to_sleep = Self::FRAME_TIME - self.elapsed_time;
         }
 
-        self.print();
+        // self.print();
 
         ::std::thread::sleep(self.time_to_sleep);
 
