@@ -105,14 +105,14 @@ fn main() {
         .with_thread_local(TextRenderSystem::new(text_builder))
         .build();
 
-
     // end ECS
 
     let mut event_pump = sdl_context.event_pump().unwrap();
     let mut i = 0;
+    let mut timer = FrameTimer::new();
 
     'running: loop {
-        let start_time = Instant::now();
+        update_delta_time(&mut world, timer.elapsed_time());
 
         i = (i + 1) % 255;
 
@@ -137,17 +137,7 @@ fn main() {
 
         canvas::proceed_on_canvas(&world, |canvas| canvas.present());
 
-        let end_time = Instant::now();
-        let elapsed_time = end_time - start_time;
-        let frame_time = Duration::from_nanos(1_000_000_000u64 / 60);
-        let time_to_sleep = frame_time - elapsed_time;
-        ::std::thread::sleep(time_to_sleep);
-
-        let end_time2 = Instant::now();
-        let elapsed_time2 = end_time2 - start_time;
-        update_delta_time(&mut world, elapsed_time2);
-
-        // println!("Logic time: {:?} | Dest frame time: {:?} | Sleep time: {:?} | Full frame time: {:?}", elapsed_time, frame_time, time_to_sleep, elapsed_time2);
+        timer.update();
     }
 
     println!("#: Closing Rusty...");
@@ -156,4 +146,48 @@ fn main() {
 fn update_delta_time(world: &mut World, new_delta: Duration) {
     let mut delta = world.write_resource::<DeltaTime>();
     *delta = DeltaTime::new(Some(new_delta));
+}
+
+pub struct FrameTimer {
+    timer: Instant,
+    elapsed_time: Duration,
+    calc_time: Duration,
+    time_to_sleep: Duration
+}
+
+impl FrameTimer {
+    const FRAME_TIME: Duration = Duration::from_nanos(1_000_000_000u64 / 60);
+
+    pub fn new() -> Self {
+        FrameTimer {
+            timer: Instant::now(),
+            elapsed_time: Duration::from_nanos(0),
+            calc_time: Duration::from_nanos(0),
+            time_to_sleep: Duration::from_nanos(0)
+        }
+    }
+
+    pub fn elapsed_time(&self) -> Duration { self.elapsed_time }
+
+    pub fn update(&mut self) {
+        self.elapsed_time = self.timer.elapsed() + self.calc_time;
+        let s = Instant::now();
+
+        self.time_to_sleep = Duration::from_nanos(0);
+        if Self::FRAME_TIME > self.elapsed_time {
+            self.time_to_sleep = Self::FRAME_TIME - self.elapsed_time;
+        }
+
+        self.print();
+
+        ::std::thread::sleep(self.time_to_sleep);
+
+        self.calc_time = s.elapsed() - self.time_to_sleep;
+        self.elapsed_time = self.timer.elapsed();
+        self.timer = Instant::now();
+    }
+
+    fn print(&mut self) {
+        println!("elapsed: {:?} | sleep: {:?} | calc: {:?} | sum: {:?}", self.elapsed_time, self.time_to_sleep, self.calc_time, self.elapsed_time + self.time_to_sleep);
+    }
 }
