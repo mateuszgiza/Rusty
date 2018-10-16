@@ -5,9 +5,6 @@ use specs::{ System, Read, Write, ReadStorage, WriteStorage };
 use components::{ Position, Velocity, Draw, Size, Text, FPS };
 use resources::{ DeltaTime, WindowSize };
 
-use sdl2::render::{ Canvas, TextureCreator, TextureQuery };
-use sdl2::video::{ Window, WindowContext };
-
 use helpers::convert::*;
 
 pub struct UpdatePos;
@@ -32,16 +29,16 @@ impl<'a> System<'a> for UpdatePos {
             pos.x += vel.x * delta;
             pos.y += vel.y * delta;
 
-            if (pos.x <= 0 as f32 && vel.x < 0 as f32) {
+            if pos.x <= 0 as f32 && vel.x < 0 as f32 {
                 vel.x = -vel.x;
             }
-            if (pos.y <= 0 as f32 && vel.y < 0 as f32) {
+            if pos.y <= 0 as f32 && vel.y < 0 as f32 {
                 vel.y = -vel.y;
             }
-            if (pos.x + size.width as f32 > window_size.0 as f32) {
+            if pos.x + size.width as f32 > window_size.0 as f32 {
                 vel.x = -vel.x;
             }
-            if (pos.y + size.height as f32 > window_size.1 as f32) {
+            if pos.y + size.height as f32 > window_size.1 as f32 {
                 vel.y = -vel.y;
             }
         }
@@ -141,7 +138,7 @@ impl<'a> System<'a> for FpsCounter {
         self.elapsed_time += delta.elapsed;
 
         for (text, fps) in (&mut text, &mut fps).join() {
-            if (self.elapsed_time >= fps.probe_time) {
+            if self.elapsed_time >= fps.probe_time {
                 fps.fps_count = self.counter;
                 self.counter = 0;
                 self.elapsed_time -= fps.probe_time;

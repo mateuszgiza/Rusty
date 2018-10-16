@@ -10,14 +10,13 @@ extern crate specs_derive;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::Color;
-use specs::Dispatcher;
-use std::time::{ Duration, Instant };
-
 use sdl2::rect::Point;
-use sdl2::render::{Canvas, TextureCreator, TextureQuery};
-use sdl2::video::{Window, WindowContext};
+use sdl2::render::Canvas;
+use sdl2::video::Window;
 
-use specs::{Builder, DispatcherBuilder, World};
+use std::time::Duration;
+
+use specs::{ Dispatcher, Builder, DispatcherBuilder, World };
 
 mod components;
 use components::{ Draw, Position, Size, Text, Velocity, FPS };
