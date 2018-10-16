@@ -43,7 +43,10 @@ use helpers::*;
 
 fn main() {
     let sdl_context = sdl2::init().unwrap();
+    let system_cursor = sdl_context.mouse();
     let video_subsystem = sdl_context.video().unwrap();
+
+    system_cursor.show_cursor(false);
 
     let window = video_subsystem
         .window("rust demo", 800, 600)
@@ -110,6 +113,12 @@ fn main() {
     let mut i = 0;
     let mut timer = FrameTimer::new();
 
+    use sdl2::image::*;
+
+    let texture_creator = world.write_resource::<CanvasHolder>().borrow().unwrap().texture_creator();
+    let image_texture = texture_creator.load_texture("cursor.png").unwrap();
+    let mut cursor_rect = sdl2::rect::Rect::new(0, 0, 32, 32);
+
     'running: loop {
         update_delta_time(&mut world, timer.elapsed_time());
 
@@ -122,6 +131,10 @@ fn main() {
                     keycode: Some(Keycode::Escape),
                     ..
                 } => break 'running,
+                Event::MouseMotion { x, y, .. } => {
+                    cursor_rect.set_x(x);
+                    cursor_rect.set_y(y);
+                },
                 _ => {}
             }
         }
@@ -134,7 +147,10 @@ fn main() {
         dispatcher.dispatch(&mut world.res);
         world.maintain();
 
-        canvas::proceed_on_canvas(&world, |canvas| canvas.present());
+        canvas::proceed_on_canvas(&world, |canvas| {
+            canvas.copy(&image_texture, None, Some(cursor_rect));
+            canvas.present();
+        });
 
         timer.update();
     }
