@@ -3,7 +3,7 @@ use resources::CanvasHolder;
 use builders::{ TextBuilder, TextTexture };
 use specs::{ System, Read, Write, ReadStorage, WriteStorage };
 use components::{ Position, Velocity, Draw, Size, Text, FPS };
-use resources::{ DeltaTime, DrawContainer, WindowSize };
+use resources::{ DeltaTime, WindowSize };
 
 use sdl2::render::{ Canvas, TextureCreator, TextureQuery };
 use sdl2::video::{ Window, WindowContext };

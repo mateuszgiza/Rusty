@@ -26,7 +26,7 @@ mod systems;
 use systems::{ DrawSystem, TextRenderSystem, UpdatePos, FpsCounter };
 
 mod resources;
-use resources::{CanvasHolder, DeltaTime, DrawContainer, WindowSize};
+use resources::{ CanvasHolder, DeltaTime, WindowSize };
 
 mod objects;
 use objects::*;
@@ -77,7 +77,6 @@ fn main() {
     world.register::<FPS>();
 
     world.add_resource(DeltaTime::new(None));
-    world.add_resource(DrawContainer::default());
     world.add_resource(WindowSize(window_size));
     world.add_resource(CanvasHolder::new(Some(canvas)));
 
