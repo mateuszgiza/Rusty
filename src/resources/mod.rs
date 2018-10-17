@@ -1,8 +1,24 @@
-mod delta_time;
-pub use self::delta_time::DeltaTime;
+use sdl2::render::Canvas;
+use sdl2::video::Window;
 
-mod canvas_holder;
-pub use self::canvas_holder::CanvasHolder;
+#[derive(Default)]
+pub struct DeltaTime(pub f32); // Change to std::time::Duration
 
-mod window_size;
-pub use self::window_size::WindowSize;
+#[derive(Default)]
+pub struct WindowSize(pub (u32, u32));
+
+#[derive(Default)]
+pub struct DrawContainer {
+    pub instructions: Vec<Box<Fn(&mut Canvas<Window>) + Send + Sync>>
+}
+
+impl DrawContainer {
+    pub fn insert<F>(&mut self, draw_fn: F)
+    where F: Fn(&mut Canvas<Window>) + 'static + Send + Sync {
+        self.instructions.push(Box::new(draw_fn));
+    }
+
+    pub fn clear(&mut self) {
+        self.instructions.clear();
+    }
+}
