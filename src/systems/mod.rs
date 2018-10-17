@@ -2,38 +2,14 @@ use std::time::Duration;
 use resources::CanvasHolder;
 use builders::{ TextBuilder, TextTexture };
 use specs::{ System, Read, Write, ReadStorage, WriteStorage };
-use components::{ Position, Draw, Size, Text, FPS };
+use components::{ Position, Text, FPS };
 use resources::{ DeltaTime };
 
 mod update_position;
 pub use self::update_position::UpdatePos;
 
-pub struct DrawSystem;
-
-impl<'a> System<'a> for DrawSystem {
-    type SystemData = (
-        Write<'a, CanvasHolder>,
-        ReadStorage<'a, Position>,
-        ReadStorage<'a, Size>,
-        ReadStorage<'a, Draw>
-    );
-
-    fn run (&mut self, data: Self::SystemData) {
-        use specs::Join;
-        use sdl2::rect::Rect;
-
-        let (mut canvas_holder, pos, size, draw) = data;
-
-        for (pos, size, draw) in (&pos, &size, &draw).join() {
-            let rect = Rect::new(pos.x as i32, pos.y as i32, size.width as u32, size.height as u32);
-            let color = draw.color;
-
-            let canvas = canvas_holder.borrow().unwrap();
-            canvas.set_draw_color(color);
-            let res = canvas.fill_rect(rect);
-        }
-    }
-}
+mod draw_system;
+pub use self::draw_system::DrawSystem;
 
 pub struct TextRenderSystem<'b> {
     text_builder: TextBuilder<'b>
