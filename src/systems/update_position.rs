@@ -1,8 +1,7 @@
 use specs::{ System, Read, WriteStorage, ReadStorage };
 use resources::{ DeltaTime, WindowSize };
 use components::{ Position, Velocity, Size };
-
-use helpers::convert::duration_to_f32;
+use extensions::*;
 
 pub struct UpdatePos;
 
@@ -19,7 +18,7 @@ impl<'a> System<'a> for UpdatePos {
         use specs::Join;
 
         let (delta, window_size, mut vel, mut pos, size) = data;
-        let delta = duration_to_f32(&delta.elapsed);
+        let delta = delta.elapsed.as_type::<f32>();
         let window_size = window_size.0;
 
         for (vel, pos, size) in (&mut vel, &mut pos, &size).join() {
