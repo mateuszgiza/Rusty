@@ -41,6 +41,9 @@ use builders::*;
 mod helpers;
 use helpers::*;
 
+mod extensions;
+use extensions::*;
+
 fn main() {
     let sdl_context = sdl2::init().unwrap();
     let system_cursor = sdl_context.mouse();
@@ -148,7 +151,7 @@ fn main() {
         world.maintain();
 
         canvas::proceed_on_canvas(&world, |canvas| {
-            canvas.copy(&image_texture, None, Some(cursor_rect));
+            canvas.copy(&image_texture, None, Some(cursor_rect)).log_on_error("Could not draw cursor on canvas!");
             canvas.present();
         });
 
