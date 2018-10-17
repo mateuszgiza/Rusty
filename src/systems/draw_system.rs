@@ -1,6 +1,7 @@
 use specs::{ System, Write, ReadStorage };
 use components::{ Position, Draw, Size };
 use resources::CanvasHolder;
+use extensions::{ CanvasHolderExt, ResultExt };
 
 pub struct DrawSystem;
 
@@ -22,9 +23,10 @@ impl<'a> System<'a> for DrawSystem {
             let rect = Rect::new(pos.x as i32, pos.y as i32, size.width as u32, size.height as u32);
             let color = draw.color;
 
-            let canvas = canvas_holder.borrow().unwrap();
-            canvas.set_draw_color(color);
-            let res = canvas.fill_rect(rect);
+            canvas_holder.proceed(|canvas| {
+                canvas.set_draw_color(color);
+                canvas.fill_rect(rect).log_on_error("Could not draw on canvas!");
+            });
         }
     }
 }

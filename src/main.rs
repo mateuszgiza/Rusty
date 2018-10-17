@@ -38,8 +38,8 @@ use common::fonts::ttf;
 mod builders;
 use builders::*;
 
-mod helpers;
-use helpers::*;
+mod extensions;
+use extensions::*;
 
 fn main() {
     let sdl_context = sdl2::init().unwrap();
@@ -120,7 +120,7 @@ fn main() {
     let mut cursor_rect = sdl2::rect::Rect::new(0, 0, 32, 32);
 
     'running: loop {
-        update_delta_time(&mut world, timer.elapsed_time());
+        world.update_delta_time(timer.elapsed_time());
 
         i = (i + 1) % 255;
 
@@ -139,7 +139,7 @@ fn main() {
             }
         }
 
-        canvas::proceed_on_canvas(&world, |canvas| {
+        world.proceed_on_canvas(|canvas| {
             canvas.set_draw_color(Color::RGB(i, 64, 255 - i));
             canvas.clear();
         });
@@ -147,8 +147,8 @@ fn main() {
         dispatcher.dispatch(&mut world.res);
         world.maintain();
 
-        canvas::proceed_on_canvas(&world, |canvas| {
-            canvas.copy(&image_texture, None, Some(cursor_rect));
+        world.proceed_on_canvas(|canvas| {
+            canvas.copy(&image_texture, None, Some(cursor_rect)).log_on_error("Could not draw cursor on canvas!");
             canvas.present();
         });
 
@@ -156,9 +156,4 @@ fn main() {
     }
 
     println!("#: Closing Rusty...");
-}
-
-fn update_delta_time(world: &mut World, new_delta: Duration) {
-    let mut delta = world.write_resource::<DeltaTime>();
-    *delta = DeltaTime::new(Some(new_delta));
 }

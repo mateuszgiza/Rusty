@@ -2,6 +2,7 @@ use specs::{ System, Write, ReadStorage };
 use resources::CanvasHolder;
 use builders::{ TextBuilder, TextTexture };
 use components::{ Position, Text };
+use extensions::CanvasHolderExt;
 
 pub struct TextRenderSystem<'b> {
     text_builder: TextBuilder<'b>
@@ -34,7 +35,9 @@ impl<'a, 'b> System<'a> for TextRenderSystem<'b> {
             let message_target = Rect::new(pos.x as i32 + offset.x, pos.y as i32 + offset.y, text_texture.query.width, text_texture.query.height);
 
             let texture = text_texture.texture;
-            canvas_holder.borrow().unwrap().copy(&texture, None, Some(message_target)).expect("could not copy texture to canvas");
+            canvas_holder.proceed(|canvas| {
+                canvas.copy(&texture, None, Some(message_target)).expect("could not copy texture to canvas");
+            });
         }
     }
 }
