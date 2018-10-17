@@ -120,7 +120,7 @@ fn main() {
     let mut cursor_rect = sdl2::rect::Rect::new(0, 0, 32, 32);
 
     'running: loop {
-        update_delta_time(&mut world, timer.elapsed_time());
+        world.update_delta_time(timer.elapsed_time());
 
         i = (i + 1) % 255;
 
@@ -156,9 +156,4 @@ fn main() {
     }
 
     println!("#: Closing Rusty...");
-}
-
-fn update_delta_time(world: &mut World, new_delta: Duration) {
-    let mut delta = world.write_resource::<DeltaTime>();
-    *delta = DeltaTime::new(Some(new_delta));
 }
