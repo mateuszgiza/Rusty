@@ -38,9 +38,6 @@ use common::fonts::ttf;
 mod builders;
 use builders::*;
 
-mod helpers;
-use helpers::*;
-
 mod extensions;
 use extensions::*;
 
@@ -142,7 +139,7 @@ fn main() {
             }
         }
 
-        canvas::proceed_on_canvas(&world, |canvas| {
+        world.proceed_on_canvas(|canvas| {
             canvas.set_draw_color(Color::RGB(i, 64, 255 - i));
             canvas.clear();
         });
@@ -150,7 +147,7 @@ fn main() {
         dispatcher.dispatch(&mut world.res);
         world.maintain();
 
-        canvas::proceed_on_canvas(&world, |canvas| {
+        world.proceed_on_canvas(|canvas| {
             canvas.copy(&image_texture, None, Some(cursor_rect)).log_on_error("Could not draw cursor on canvas!");
             canvas.present();
         });
