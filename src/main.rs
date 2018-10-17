@@ -116,7 +116,7 @@ fn main() {
     use sdl2::image::*;
 
     let texture_creator = world.write_resource::<CanvasHolder>().borrow().unwrap().texture_creator();
-    let image_texture = texture_creator.load_texture("cursor.png").unwrap();
+    let image_texture = texture_creator.load_texture("cursor.png").expect("Cursor could not loaded");
     let mut cursor_rect = sdl2::rect::Rect::new(0, 0, 32, 32);
 
     'running: loop {
