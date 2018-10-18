@@ -1,6 +1,7 @@
 extern crate chrono;
 extern crate sdl2;
 extern crate specs;
+extern crate sdl2_extras;
 
 extern crate lazy_static;
 
@@ -41,6 +42,8 @@ use builders::*;
 mod extensions;
 use extensions::*;
 
+use sdl2_extras::*;
+
 fn main() {
     let sdl_context = sdl2::init().unwrap();
     let system_cursor = sdl_context.mouse();
@@ -64,6 +67,8 @@ fn main() {
     let font_context = sdl2::ttf::init().expect("could not initialize TtfContext");
     let mut font_manager = FontManager::new(&font_context);
     font_manager.load_fonts(vec![ttf(fonts::SPACE_MONO_REGULAR)], 24);
+
+    let fm2 = managers::FontManager::new(&font_context);
 
     let text_builder = TextBuilder::new(&canvas, &font_manager);
     let font_color = Color::RGB(255, 255, 255);
