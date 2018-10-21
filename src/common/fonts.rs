@@ -1,7 +1,5 @@
 #![allow(dead_code)]
 
-pub const SPACE_MONO_REGULAR: &str = "SpaceMono-Regular";
+use sdl2_extras::common::FontDetails;
 
-pub fn ttf(font_name: &str) -> String {
-    return font_name.to_owned() + ".ttf";
-}
+pub const SPACE_MONO_REGULAR: FontDetails = FontDetails { path: "SpaceMono-Regular.ttf".into(), size: 24 };

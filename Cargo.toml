@@ -8,9 +8,13 @@ chrono = "0.4.6"
 lazy_static = "1.1.0"
 specs = "0.12.3"
 specs-derive = "0.2.0"
-sdl2-extras = "0.0.1"
+# sdl2-extras = "0.0.1"
 
 [dependencies.sdl2]
     version = "0.31"
     default-features = false
-    features = ["ttf","image","mixer"]
+    features = ["ttf","image","mixer", "gfx"]
+
+[dependencies.sdl2-extras]
+    version = "0.1.1"
+    features = ["fspecs"]

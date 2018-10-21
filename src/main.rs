@@ -2,7 +2,6 @@ extern crate chrono;
 extern crate sdl2;
 extern crate specs;
 extern crate sdl2_extras;
-
 extern crate lazy_static;
 
 #[macro_use]
@@ -26,15 +25,11 @@ mod systems;
 use systems::{ DrawSystem, TextRenderSystem, UpdatePos, FpsCounter };
 
 mod resources;
-use resources::{ CanvasHolder, DeltaTime, WindowSize };
-
-mod objects;
-use objects::*;
+use resources::{ WindowSize };
 
 mod common;
 use common::FrameTimer;
 use common::fonts;
-use common::fonts::ttf;
 
 mod builders;
 use builders::*;
@@ -42,7 +37,10 @@ use builders::*;
 mod extensions;
 use extensions::*;
 
-use sdl2_extras::*;
+use sdl2_extras::adapters::CanvasAdapter;
+use sdl2_extras::common::GameTime;
+use sdl2_extras::managers::FontManager;
+use sdl2_extras::fspecs::WorldExt;
 
 fn main() {
     let sdl_context = sdl2::init().unwrap();
@@ -66,9 +64,7 @@ fn main() {
 
     let font_context = sdl2::ttf::init().expect("could not initialize TtfContext");
     let mut font_manager = FontManager::new(&font_context);
-    font_manager.load_fonts(vec![ttf(fonts::SPACE_MONO_REGULAR)], 24);
-
-    let fm2 = managers::FontManager::new(&font_context);
+    font_manager.load(&fonts::SPACE_MONO_REGULAR);
 
     let text_builder = TextBuilder::new(&canvas, &font_manager);
     let font_color = Color::RGB(255, 255, 255);
@@ -83,14 +79,14 @@ fn main() {
     world.register::<Text>();
     world.register::<FPS>();
 
-    world.add_resource(DeltaTime::new(None));
+    world.add_resource(GameTime::default());
     world.add_resource(WindowSize(window_size));
-    world.add_resource(CanvasHolder::new(Some(canvas)));
+    world.add_resource(CanvasAdapter::new(Some(canvas)));
 
     world.create_entity()
         .with(Position { x: 0.0, y: 0.0 })
         .with(FPS::new(Duration::from_secs(1)))
-        .with(Text { text: "FPS: 0".to_string(), offset: Point::new(0, 0), color: font_color, font: fonts::SPACE_MONO_REGULAR.to_string()})
+        .with(Text { text: "FPS: 0".to_string(), offset: Point::new(0, 0), color: font_color, font: fonts::SPACE_MONO_REGULAR })
         .build();
     world.create_entity()
         .with(Position { x: 4.0, y: 7.0 })
@@ -102,7 +98,7 @@ fn main() {
         .with(Velocity { x: 50.0, y: 30.0 })
         .with(Size { width: 100, height: 50 })
         .with(Draw { color: Color::RGB(255, 0, 0) })
-        .with(Text { text: "Elo xD".to_string(), offset: Point::new(0, -50), color: font_color, font: fonts::SPACE_MONO_REGULAR.to_string()})
+        .with(Text { text: "Elo xD".to_string(), offset: Point::new(0, -50), color: font_color, font: fonts::SPACE_MONO_REGULAR })
         .build();
 
     let mut dispatcher: Dispatcher<'_, '_> = DispatcherBuilder::new()
@@ -117,10 +113,14 @@ fn main() {
     let mut event_pump = sdl_context.event_pump().unwrap();
     let mut i = 0;
     let mut timer = FrameTimer::new();
+    timer.is_sleep_enabled = false;
+    let mut fps_manager = sdl2::gfx::framerate::FPSManager::new();
+    fps_manager.set_framerate(60);
+    println!("Current framerate: {}", fps_manager.get_framerate());
 
     use sdl2::image::*;
 
-    let texture_creator = world.write_resource::<CanvasHolder>().borrow().unwrap().texture_creator();
+    let texture_creator = world.write_resource::<CanvasAdapter>().borrow().unwrap().texture_creator();
     let image_texture = texture_creator.load_texture("cursor.png").expect("Cursor could not loaded");
     let mut cursor_rect = sdl2::rect::Rect::new(0, 0, 32, 32);
 
@@ -158,6 +158,7 @@ fn main() {
         });
 
         timer.update();
+        fps_manager.delay();
     }
 
     println!("#: Closing Rusty...");

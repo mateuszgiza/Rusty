@@ -1,13 +1,13 @@
 use specs::{ System, Read, WriteStorage, ReadStorage };
-use resources::{ DeltaTime, WindowSize };
+use resources::{ WindowSize };
 use components::{ Position, Velocity, Size };
-use extensions::*;
+use sdl2_extras::common::GameTime;
 
 pub struct UpdatePos;
 
 impl<'a> System<'a> for UpdatePos {
     type SystemData = (
-        Read<'a, DeltaTime>,
+        Read<'a, GameTime>,
         Read<'a, WindowSize>,
         WriteStorage<'a, Velocity>,
         WriteStorage<'a, Position>,
@@ -17,13 +17,12 @@ impl<'a> System<'a> for UpdatePos {
     fn run (&mut self, data: Self::SystemData) {
         use specs::Join;
 
-        let (delta, window_size, mut vel, mut pos, size) = data;
-        let delta = delta.elapsed.as_type::<f32>();
+        let (game_time, window_size, mut vel, mut pos, size) = data;
         let window_size = window_size.0;
 
         for (vel, pos, size) in (&mut vel, &mut pos, &size).join() {
-            pos.x += vel.x * delta;
-            pos.y += vel.y * delta;
+            pos.x += vel.x * game_time.delta;
+            pos.y += vel.y * game_time.delta;
 
             if pos.x <= 0 as f32 && vel.x < 0 as f32 {
                 vel.x = -vel.x;
