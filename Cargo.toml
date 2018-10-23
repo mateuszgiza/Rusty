@@ -16,5 +16,5 @@ specs-derive = "0.2.0"
     features = ["ttf","image","mixer", "gfx"]
 
 [dependencies.sdl2-extras]
-    version = "0.1.1"
+    version = "0.1.2"
     features = ["fspecs"]

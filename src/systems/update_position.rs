@@ -21,8 +21,8 @@ impl<'a> System<'a> for UpdatePos {
         let window_size = window_size.0;
 
         for (vel, pos, size) in (&mut vel, &mut pos, &size).join() {
-            pos.x += vel.x * game_time.delta;
-            pos.y += vel.y * game_time.delta;
+            pos.x += vel.x * &game_time.delta;
+            pos.y += vel.y * &game_time.delta;
 
             if pos.x <= 0 as f32 && vel.x < 0 as f32 {
                 vel.x = -vel.x;

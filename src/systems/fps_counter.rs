@@ -38,7 +38,7 @@ impl<'a> System<'a> for FpsCounter {
                 self.counter = 0;
                 self.elapsed_time -= fps.probe_time;
 
-                text.text = format!("FPS: {} | frame_time: {:?}ms", fps.fps_count, (game_time.delta / 1_000_000.0 * 100.0).round() / 100.0);
+                text.text = format!("FPS: {} | frame_time: {:?}ms", fps.fps_count, (&game_time.delta / 1_000_000.0 * 100.0).round() / 100.0);
             }
         }
     }
