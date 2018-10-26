@@ -30,7 +30,7 @@ impl<'a, 'b> System<'a> for TextRenderSystem<'b> {
 
         for (text, pos) in (&text, &pos).join() {
             let Text { text, offset, color, font } = text;
-            let text_texture: TextTexture<'c> = self.text_builder.build_text(text, font, color);
+            let text_texture: TextTexture<'c> = self.text_builder.build_text(text, &font.get_details(), color);
             let message_target = Rect::new(pos.x as i32 + offset.x, pos.y as i32 + offset.y, text_texture.query.width, text_texture.query.height);
 
             let texture = text_texture.texture;

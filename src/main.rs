@@ -28,8 +28,7 @@ mod resources;
 use resources::{ WindowSize };
 
 mod common;
-use common::FrameTimer;
-use common::fonts;
+use common::{ FontType, FrameTimer };
 
 mod builders;
 use builders::*;
@@ -64,7 +63,7 @@ fn main() {
 
     let font_context = sdl2::ttf::init().expect("could not initialize TtfContext");
     let mut font_manager = FontManager::new(&font_context);
-    font_manager.load(&fonts::SPACE_MONO_REGULAR);
+    font_manager.load(&FontType::SpaceMonoRegular24.get_details());
 
     let text_builder = TextBuilder::new(&canvas, &font_manager);
     let font_color = Color::RGB(255, 255, 255);
@@ -86,7 +85,7 @@ fn main() {
     world.create_entity()
         .with(Position { x: 0.0, y: 0.0 })
         .with(FPS::new(Duration::from_secs(1)))
-        .with(Text { text: "FPS: 0".to_string(), offset: Point::new(0, 0), color: font_color, font: fonts::SPACE_MONO_REGULAR })
+        .with(Text { text: "FPS: 0".to_string(), offset: Point::new(0, 0), color: font_color, font: FontType::SpaceMonoRegular24 })
         .build();
     world.create_entity()
         .with(Position { x: 4.0, y: 7.0 })
@@ -98,7 +97,7 @@ fn main() {
         .with(Velocity { x: 50.0, y: 30.0 })
         .with(Size { width: 100, height: 50 })
         .with(Draw { color: Color::RGB(255, 0, 0) })
-        .with(Text { text: "Elo xD".to_string(), offset: Point::new(0, -50), color: font_color, font: fonts::SPACE_MONO_REGULAR })
+        .with(Text { text: "Elo xD".to_string(), offset: Point::new(0, -50), color: font_color, font: FontType::SpaceMonoRegular24 })
         .build();
 
     let mut dispatcher: Dispatcher<'_, '_> = DispatcherBuilder::new()

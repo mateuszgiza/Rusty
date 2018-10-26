@@ -27,11 +27,11 @@ unsafe impl<'a> Sync for TextTexture<'a> {}
 
 pub struct TextBuilder<'f> {
     texture_creator: TextureCreator<WindowContext>,
-    font_manager: &'f FontManager<'f>
+    font_manager: &'f mut FontManager<'f>
 }
 
 impl<'f> TextBuilder<'f> {
-    pub fn new(canvas: &Canvas<Window>, font_manager: &'f FontManager) -> Self {
+    pub fn new(canvas: &Canvas<Window>, font_manager: &'f mut FontManager) -> Self {
         let texture_creator = canvas.texture_creator();
 
         TextBuilder {
