@@ -65,7 +65,7 @@ fn main() {
     let mut font_manager = FontManager::new(&font_context);
     font_manager.load(&FontType::SpaceMonoRegular24.get_details());
 
-    let text_builder = TextBuilder::new(&canvas, &font_manager);
+    let text_builder = TextBuilder::new(&canvas, &mut font_manager);
     let font_color = Color::RGB(255, 255, 255);
 
     // ECS

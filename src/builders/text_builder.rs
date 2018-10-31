@@ -25,13 +25,13 @@ impl<'a> TextTexture<'a> {
 unsafe impl<'a> Send for TextTexture<'a> {}
 unsafe impl<'a> Sync for TextTexture<'a> {}
 
-pub struct TextBuilder<'f> {
+pub struct TextBuilder<'f, 'fm: 'f> {
     texture_creator: TextureCreator<WindowContext>,
-    font_manager: &'f mut FontManager<'f>
+    font_manager: &'f mut FontManager<'fm>
 }
 
-impl<'f> TextBuilder<'f> {
-    pub fn new(canvas: &Canvas<Window>, font_manager: &'f mut FontManager) -> Self {
+impl<'f, 'fm> TextBuilder<'f, 'fm> {
+    pub fn new(canvas: &Canvas<Window>, font_manager: &'f mut FontManager<'fm>) -> Self {
         let texture_creator = canvas.texture_creator();
 
         TextBuilder {
@@ -40,7 +40,7 @@ impl<'f> TextBuilder<'f> {
         }
     }
 
-    pub fn build_text<'a>(&'a self, text: &str, font_details: &FontDetails, color: &Color) -> TextTexture<'a> {
+    pub fn build_text<'a>(&'a mut self, text: &str, font_details: &FontDetails, color: &Color) -> TextTexture<'a> {
         let font = self.font_manager.load(font_details).unwrap();
         let text_render = font.render(text);
         let text_surface = text_render.solid(*color).unwrap();

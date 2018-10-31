@@ -3,19 +3,19 @@ use builders::{ TextBuilder, TextTexture };
 use components::{ Position, Text };
 use sdl2_extras::adapters::CanvasAdapter;
 
-pub struct TextRenderSystem<'b> {
-    text_builder: TextBuilder<'b>
+pub struct TextRenderSystem<'b, 'fm: 'b> {
+    text_builder: TextBuilder<'b, 'fm>
 }
 
-impl<'b> TextRenderSystem<'b> {
-    pub fn new(text_builder: TextBuilder<'b>) -> Self {
+impl<'b, 'fm> TextRenderSystem<'b, 'fm> {
+    pub fn new(text_builder: TextBuilder<'b, 'fm>) -> Self {
         TextRenderSystem {
             text_builder: text_builder
         }
     }
 }
 
-impl<'a, 'b> System<'a> for TextRenderSystem<'b> {
+impl<'a, 'b, 'fm> System<'a> for TextRenderSystem<'b, 'fm> {
     type SystemData = (
         Write<'a, CanvasAdapter>,
         ReadStorage<'a, Text>,
@@ -30,7 +30,7 @@ impl<'a, 'b> System<'a> for TextRenderSystem<'b> {
 
         for (text, pos) in (&text, &pos).join() {
             let Text { text, offset, color, font } = text;
-            let text_texture: TextTexture<'c> = self.text_builder.build_text(text, &font.get_details(), color);
+            let text_texture = self.text_builder.build_text(text, &font.get_details(), color);
             let message_target = Rect::new(pos.x as i32 + offset.x, pos.y as i32 + offset.y, text_texture.query.width, text_texture.query.height);
 
             let texture = text_texture.texture;
