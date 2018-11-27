@@ -1,4 +1,4 @@
-use specs::VecStorage;
+use specs::{ Component, VecStorage };
 use sdl2::pixels::Color;
 
 #[derive(Component, Debug)]

@@ -63,7 +63,7 @@ fn main() {
 
     let font_context = sdl2::ttf::init().expect("could not initialize TtfContext");
     let mut font_manager = FontManager::new(&font_context);
-    font_manager.load(&FontType::SpaceMonoRegular24.get_details());
+    font_manager.load(&FontType::SpaceMonoRegular24.get_details()).expect("Could not load font!");
 
     let text_builder = TextBuilder::new(&canvas, &mut font_manager);
     let font_color = Color::RGB(255, 255, 255);
@@ -114,7 +114,7 @@ fn main() {
     let mut timer = FrameTimer::new();
     timer.is_sleep_enabled = false;
     let mut fps_manager = sdl2::gfx::framerate::FPSManager::new();
-    fps_manager.set_framerate(60);
+    fps_manager.set_framerate(60).log_on_error("Could not set framerate!");
     println!("Current framerate: {}", fps_manager.get_framerate());
 
     use sdl2::image::*;

@@ -1,4 +1,4 @@
-use specs::VecStorage;
+use specs::{ Component, VecStorage };
 use sdl2::rect::Point;
 use sdl2::pixels::Color;
 use common::FontType;

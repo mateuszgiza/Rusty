@@ -1,5 +1,5 @@
 use std::time::Duration;
-use specs::VecStorage;
+use specs::{ Component, VecStorage };
 
 #[derive(Component, Debug)]
 #[storage(VecStorage)]

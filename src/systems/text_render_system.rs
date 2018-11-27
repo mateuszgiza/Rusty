@@ -1,5 +1,5 @@
 use specs::{ System, Write, ReadStorage };
-use builders::{ TextBuilder, TextTexture };
+use builders::{ TextBuilder };
 use components::{ Position, Text };
 use sdl2_extras::adapters::CanvasAdapter;
 
