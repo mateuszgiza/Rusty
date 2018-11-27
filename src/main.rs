@@ -16,7 +16,12 @@ mod systems;
 fn main() {
     println!("#: Starting Rusty...");
 
-    engine::start();
-    
-    println!("#: Closing Rusty...");
+    let result = engine::start();
+
+    let close_info = match result {
+        Ok(_) => "#: Closing Rusty...".into(),
+        Err(e) => format!("FATAL ERROR: {}", e)
+    };
+
+    println!("{}", close_info);
 }

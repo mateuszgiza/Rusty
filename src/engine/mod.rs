@@ -1,4 +1,7 @@
-use std::time::Duration;
+use std::{
+    error::Error,
+    time::Duration
+};
 use specs::{ Dispatcher, Builder, DispatcherBuilder, World };
 use sdl2::{
     event::Event,
@@ -23,31 +26,28 @@ use {
     systems::{ DrawSystem, TextRenderSystem, UpdatePos, FpsCounter }
 };
 
-pub fn start() {
-    let sdl_context = sdl2::init().unwrap();
+pub fn start() -> Result<(), Box<Error>> {
+    let sdl_context = sdl2::init()?;
     let system_cursor = sdl_context.mouse();
-    let video_subsystem = sdl_context.video().unwrap();
+    let video_subsystem = sdl_context.video()?;
 
     system_cursor.show_cursor(false);
 
     let window = video_subsystem
         .window("rust demo", 800, 600)
         .position_centered()
-        .build()
-        .unwrap();
+        .build()?;
 
     let window_size = window.size();
-    let mut canvas: Canvas<Window> = window.into_canvas().build().unwrap();
+    let mut canvas: Canvas<Window> = window.into_canvas().build()?;
 
     canvas.set_draw_color(Color::RGB(0, 255, 255));
     canvas.clear();
     canvas.present();
 
-    let font_context = sdl2::ttf::init().expect("could not initialize TtfContext");
+    let font_context = sdl2::ttf::init()?;
     let mut font_manager = FontManager::new(&font_context);
-    font_manager
-        .load(&FontType::SpaceMonoRegular24.get_details())
-        .expect("Could not load font!");
+    font_manager.load(&FontType::SpaceMonoRegular24.get_details())?;
 
     let text_builder = TextBuilder::new(&canvas, &mut font_manager);
     let font_color = Color::RGB(255, 255, 255);
@@ -110,7 +110,7 @@ pub fn start() {
 
     // end ECS
 
-    let mut event_pump = sdl_context.event_pump().unwrap();
+    let mut event_pump = sdl_context.event_pump()?;
     let mut i = 0;
     let mut timer = FrameTimer::new();
     timer.is_sleep_enabled = false;
@@ -127,9 +127,7 @@ pub fn start() {
         .borrow()
         .unwrap()
         .texture_creator();
-    let image_texture = texture_creator
-        .load_texture("cursor.png")
-        .expect("Cursor could not loaded");
+    let image_texture = texture_creator.load_texture("cursor.png")?;
     let mut cursor_rect = sdl2::rect::Rect::new(0, 0, 32, 32);
 
     'running: loop {
@@ -170,4 +168,6 @@ pub fn start() {
         timer.update();
         fps_manager.delay();
     }
+
+    Ok(())
 }
