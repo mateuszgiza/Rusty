@@ -3,43 +3,39 @@ extern crate sdl2;
 extern crate specs;
 extern crate sdl2_extras;
 extern crate lazy_static;
-
-#[macro_use]
-extern crate specs_derive;
-
-use sdl2::event::Event;
-use sdl2::keyboard::Keycode;
-use sdl2::pixels::Color;
-use sdl2::rect::Point;
-use sdl2::render::Canvas;
-use sdl2::video::Window;
-
-use std::time::Duration;
-
-use specs::{ Dispatcher, Builder, DispatcherBuilder, World };
-
-mod components;
-use components::{ Draw, Position, Size, Text, Velocity, FPS };
-
-mod systems;
-use systems::{ DrawSystem, TextRenderSystem, UpdatePos, FpsCounter };
-
-mod resources;
-use resources::{ WindowSize };
-
-mod common;
-use common::{ FontType, FrameTimer };
+#[macro_use] extern crate specs_derive;
 
 mod builders;
-use builders::*;
-
+mod common;
+mod components;
 mod extensions;
-use extensions::*;
+mod resources;
+mod systems;
 
-use sdl2_extras::adapters::CanvasAdapter;
-use sdl2_extras::common::GameTime;
-use sdl2_extras::managers::FontManager;
-use sdl2_extras::fspecs::WorldExt;
+use std::time::Duration;
+use specs::{ Dispatcher, Builder, DispatcherBuilder, World };
+use sdl2::{
+    event::Event,
+    keyboard::Keycode,
+    pixels::Color,
+    rect::Point,
+    render::Canvas,
+    video::Window
+};
+use sdl2_extras::{
+    adapters::CanvasAdapter,
+    common::GameTime,
+    managers::FontManager,
+    fspecs::WorldExt
+};
+use {
+    builders::TextBuilder,
+    common::{ FontType, FrameTimer },
+    components::{ Draw, Position, Size, Text, Velocity, FPS },
+    extensions::ResultExt,
+    resources::{ WindowSize },
+    systems::{ DrawSystem, TextRenderSystem, UpdatePos, FpsCounter }
+};
 
 fn main() {
     let sdl_context = sdl2::init().unwrap();
