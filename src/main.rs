@@ -13,13 +13,16 @@ mod extensions;
 mod resources;
 mod systems;
 
+const START_MESSAGE: &'static str = "#: Starting Rusty...";
+const CLOSE_MESSAGE: &'static str = "#: Closing Rusty...";
+
 fn main() {
-    println!("#: Starting Rusty...");
+    println!("{}", START_MESSAGE);
 
     let result = engine::start();
 
     let close_info = match result {
-        Ok(_) => "#: Closing Rusty...".into(),
+        Ok(_) => CLOSE_MESSAGE.into(),
         Err(e) => format!("FATAL ERROR: {}", e)
     };
 
