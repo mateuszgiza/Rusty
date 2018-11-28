@@ -8,6 +8,7 @@ chrono = "0.4.6"
 lazy_static = "1.2.0"
 specs = "0.14.1"
 specs-derive = "0.3.0"
+colored = "1.6.1"
 
 [dependencies.sdl2]
     version = "0.31"
