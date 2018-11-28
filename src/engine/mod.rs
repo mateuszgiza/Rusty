@@ -1,3 +1,4 @@
+use log::{info, warn, error};
 use std::{
     error::Error,
     time::Duration
@@ -5,6 +6,7 @@ use std::{
 use specs::{ Dispatcher, Builder, DispatcherBuilder, World };
 use sdl2::{
     event::Event,
+    image::LoadTexture,
     keyboard::Keycode,
     pixels::Color,
     rect::Point,
@@ -117,17 +119,16 @@ pub fn start() -> Result<(), Box<Error>> {
     let mut fps_manager = sdl2::gfx::framerate::FPSManager::new();
     fps_manager
         .set_framerate(60)
-        .log_on_error("Could not set framerate!");
-    println!("Current framerate: {}", fps_manager.get_framerate());
-
-    use sdl2::image::*;
+        .on_success(|_| info!("Current framerate: {}", fps_manager.get_framerate()))
+        .on_error(|_| warn!("Could not set framerate!"))
+        .void();
 
     let texture_creator = world
         .write_resource::<CanvasAdapter>()
         .borrow()
         .unwrap()
         .texture_creator();
-    let image_texture = texture_creator.load_texture("cursor.png")?;
+    let image_texture = texture_creator.load_texture("cursor.png").on_error(|_| error!("Could not load cursor file!"))?;
     let mut cursor_rect = sdl2::rect::Rect::new(0, 0, 32, 32);
 
     'running: loop {
@@ -161,7 +162,8 @@ pub fn start() -> Result<(), Box<Error>> {
         world.proceed_on_canvas(|canvas| {
             canvas
                 .copy(&image_texture, None, Some(cursor_rect))
-                .log_on_error("Could not draw cursor on canvas!");
+                .on_error(|_| warn!("Could not draw cursor on canvas!"))
+                .void();
             canvas.present();
         });
 
