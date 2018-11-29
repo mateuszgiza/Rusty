@@ -1,4 +1,11 @@
-use log::{info, warn, error};
+mod bootstrapper;
+use self::bootstrapper::Bootstrapper;
+
+mod context;
+pub use self::context::Context;
+
+use colored::*;
+use log::{trace, info, warn, error};
 use std::{
     error::Error,
     time::Duration
@@ -28,19 +35,14 @@ use {
 };
 
 pub fn start() -> Result<(), Box<Error>> {
-    let sdl_context = sdl2::init()?;
-    let system_cursor = sdl_context.mouse();
-    let video_subsystem = sdl_context.video()?;
+    let mut context = Bootstrapper::initialize()
+        .on_success(|_| trace!("{}", "Engine initialization succeeded!".green()))
+        .on_error(|e| error!("Engine initialization error: {}", e))?;
+    
+    context.cursor.hide_system();
 
-    system_cursor.show_cursor(false);
-
-    let window = video_subsystem
-        .window("rust demo", 800, 600)
-        .position_centered()
-        .build()?;
-
-    let window_size = window.size();
-    let mut canvas: Canvas<Window> = window.into_canvas().build()?;
+    let window_size = context.window.size();
+    let mut canvas: Canvas<Window> = context.window.into_canvas().build()?;
 
     canvas.set_draw_color(Color::RGB(0, 255, 255));
     canvas.clear();
@@ -114,7 +116,7 @@ pub fn start() -> Result<(), Box<Error>> {
 
     // end ECS
 
-    let mut event_pump = sdl_context.event_pump()?;
+    let mut event_pump = context.sdl_context.event_pump()?;
     let mut i = 0;
     let mut timer = FrameTimer::new();
     timer.is_sleep_enabled = false;
