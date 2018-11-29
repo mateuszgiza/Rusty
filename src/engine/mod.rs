@@ -10,14 +10,12 @@ use std::{
     error::Error,
     time::Duration
 };
-use specs::{ Dispatcher, Builder, DispatcherBuilder, World };
+use specs::{ Builder, DispatcherBuilder, World };
 use sdl2::{
     event::Event,
     keyboard::Keycode,
     pixels::Color,
-    rect::Point,
-    render::Canvas,
-    video::Window
+    rect::Point
 };
 use sdl2_extras::{
     adapters::CanvasAdapter,
@@ -42,7 +40,7 @@ pub fn start() -> Result<(), Box<Error>> {
     context.cursor.hide_system();
 
     let window_size = context.window.size();
-    let mut canvas: Canvas<Window> = context.window.into_canvas().build()?;
+    let mut canvas = context.window.into_canvas().build()?;
 
     canvas.set_draw_color(Color::RGB(0, 255, 255));
     canvas.clear();
@@ -107,7 +105,7 @@ pub fn start() -> Result<(), Box<Error>> {
             font: FontType::SpaceMonoRegular24,
         }).build();
 
-    let mut dispatcher: Dispatcher<'_, '_> = DispatcherBuilder::new()
+    let mut dispatcher = DispatcherBuilder::new()
         .with(FpsCounter::new(), "fps_counter", &[])
         .with(UpdatePos, "update_pos", &[])
         .with(DrawSystem, "draw_system", &["update_pos"])
