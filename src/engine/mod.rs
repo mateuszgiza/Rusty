@@ -6,7 +6,6 @@ use std::{
 use specs::{ Dispatcher, Builder, DispatcherBuilder, World };
 use sdl2::{
     event::Event,
-    image::LoadTexture,
     keyboard::Keycode,
     pixels::Color,
     rect::Point,
@@ -16,7 +15,7 @@ use sdl2::{
 use sdl2_extras::{
     adapters::CanvasAdapter,
     common::GameTime,
-    managers::FontManager,
+    managers::{FontManager, TextureManager},
     fspecs::WorldExt
 };
 use {
@@ -24,7 +23,7 @@ use {
     common::{ FontType, FrameTimer },
     components::{ Draw, Position, Size, Text, Velocity, FPS },
     extensions::ResultExt,
-    resources::{ WindowSize },
+    resources::WindowSize,
     systems::{ DrawSystem, TextRenderSystem, UpdatePos, FpsCounter }
 };
 
@@ -67,6 +66,9 @@ pub fn start() -> Result<(), Box<Error>> {
     world.add_resource(GameTime::default());
     world.add_resource(WindowSize(window_size));
     world.add_resource(CanvasAdapter::new(Some(canvas)));
+
+    let texture_creator = world.get_texture_creator()?;
+    let mut texture_manager = TextureManager::new(&texture_creator);
 
     world
         .create_entity()
@@ -121,14 +123,9 @@ pub fn start() -> Result<(), Box<Error>> {
         .set_framerate(60)
         .on_success(|_| info!("Current framerate: {}", fps_manager.get_framerate()))
         .on_error(|_| warn!("Could not set framerate!"))
-        .void();
+        .discard_result();
 
-    let texture_creator = world
-        .write_resource::<CanvasAdapter>()
-        .borrow()
-        .unwrap()
-        .texture_creator();
-    let image_texture = texture_creator.load_texture("cursor.png").on_error(|_| error!("Could not load cursor file!"))?;
+    let image_texture = texture_manager.load("cursor.png").on_error(|_| error!("Could not load cursor file!"))?;
     let mut cursor_rect = sdl2::rect::Rect::new(0, 0, 32, 32);
 
     'running: loop {
@@ -154,18 +151,17 @@ pub fn start() -> Result<(), Box<Error>> {
         world.proceed_on_canvas(|canvas| {
             canvas.set_draw_color(Color::RGB(i, 64, 255 - i));
             canvas.clear();
-        });
+        }).discard_result();
 
         dispatcher.dispatch(&mut world.res);
         world.maintain();
 
         world.proceed_on_canvas(|canvas| {
-            canvas
-                .copy(&image_texture, None, Some(cursor_rect))
+            canvas.copy(&image_texture, None, Some(cursor_rect))
                 .on_error(|_| warn!("Could not draw cursor on canvas!"))
-                .void();
+                .discard_result();
             canvas.present();
-        });
+        }).discard_result();
 
         timer.update();
         fps_manager.delay();

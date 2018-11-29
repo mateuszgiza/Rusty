@@ -1,7 +1,7 @@
 use std::fmt::Display;
 
 pub trait ResultExt<T, TError> {
-    fn void(self);
+    fn discard_result(self);
     fn on_success<F>(self, action: F) -> Result<T, TError> where F: FnOnce(&T);
     fn on_error<F>(self, action: F) -> Result<T, TError> where F: FnOnce(&TError);
 }
@@ -10,7 +10,7 @@ impl<T, TError> ResultExt<T, TError> for Result<T, TError>
 where
     TError: Display,
 {
-    fn void(self) {}
+    fn discard_result(self) {}
 
     fn on_success<F>(self, action: F) -> Result<T, TError> where F: FnOnce(&T) {
         match &self {

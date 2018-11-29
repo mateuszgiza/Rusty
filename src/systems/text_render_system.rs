@@ -2,6 +2,7 @@ use specs::{ System, Write, ReadStorage };
 use builders::{ TextBuilder };
 use components::{ Position, Text };
 use sdl2_extras::adapters::CanvasAdapter;
+use extensions::ResultExt;
 
 pub struct TextRenderSystem<'b, 'fm: 'b> {
     text_builder: TextBuilder<'b, 'fm>
@@ -36,7 +37,7 @@ impl<'a, 'b, 'fm> System<'a> for TextRenderSystem<'b, 'fm> {
             let texture = text_texture.texture;
             canvas_adapter.proceed(|canvas| {
                 canvas.copy(&texture, None, Some(message_target)).expect("could not copy texture to canvas");
-            });
+            }).discard_result();
         }
     }
 }

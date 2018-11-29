@@ -1,7 +1,7 @@
 use log::warn;
 use specs::{ System, Write, ReadStorage };
 use components::{ Position, Draw, Size };
-use extensions::{ ResultExt };
+use extensions::ResultExt;
 use sdl2_extras::adapters::CanvasAdapter;
 
 pub struct DrawSystem;
@@ -26,8 +26,8 @@ impl<'a> System<'a> for DrawSystem {
 
             canvas_adapter.proceed(|canvas| {
                 canvas.set_draw_color(color);
-                canvas.fill_rect(rect).on_error(|_| warn!("Could not draw on canvas!")).void();
-            });
+                canvas.fill_rect(rect).on_error(|_| warn!("Could not draw on canvas!")).discard_result();
+            }).discard_result();
         }
     }
 }
