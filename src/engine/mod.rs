@@ -1,9 +1,6 @@
 mod bootstrapper;
 use self::bootstrapper::Bootstrapper;
 
-mod context;
-pub use self::context::Context;
-
 use colored::*;
 use log::{trace, info, warn, error};
 use std::{
@@ -18,7 +15,6 @@ use sdl2::{
     rect::Point
 };
 use sdl2_extras::{
-    adapters::CanvasAdapter,
     common::GameTime,
     managers::{FontManager, TextureManager},
     fspecs::WorldExt
@@ -28,7 +24,6 @@ use {
     common::{ FontType, FrameTimer },
     components::{ Draw, Position, Size, Text, Velocity, FPS },
     extensions::ResultExt,
-    resources::WindowSize,
     systems::{ DrawSystem, TextRenderSystem, UpdatePos, FpsCounter }
 };
 
@@ -39,18 +34,12 @@ pub fn start() -> Result<(), Box<Error>> {
     
     context.cursor.hide_system();
 
-    let window_size = context.window.size();
-    let mut canvas = context.window.into_canvas().build()?;
-
-    canvas.set_draw_color(Color::RGB(0, 255, 255));
-    canvas.clear();
-    canvas.present();
-
+    let mut event_pump = context.sdl_context.event_pump()?;
     let font_context = sdl2::ttf::init()?;
     let mut font_manager = FontManager::new(&font_context);
     font_manager.load(&FontType::SpaceMonoRegular24.get_details())?;
 
-    let text_builder = TextBuilder::new(&canvas, &mut font_manager);
+    let text_builder = TextBuilder::new(context.canvas.borrow().unwrap(), &mut font_manager);
     let font_color = Color::RGB(255, 255, 255);
 
     // ECS
@@ -64,8 +53,15 @@ pub fn start() -> Result<(), Box<Error>> {
     world.register::<FPS>();
 
     world.add_resource(GameTime::default());
-    world.add_resource(WindowSize(window_size));
-    world.add_resource(CanvasAdapter::new(Some(canvas)));
+    // world.add_resource(&context.window_data);
+    // world.add_resource(&context.canvas);
+    world.add_resource(context);
+
+    world.proceed_on_canvas(|canvas| {
+        canvas.set_draw_color(Color::RGB(0, 255, 255));
+        canvas.clear();
+        canvas.present();
+    }).discard_result();
 
     let texture_creator = world.get_texture_creator()?;
     let mut texture_manager = TextureManager::new(&texture_creator);
@@ -114,7 +110,6 @@ pub fn start() -> Result<(), Box<Error>> {
 
     // end ECS
 
-    let mut event_pump = context.sdl_context.event_pump()?;
     let mut i = 0;
     let mut timer = FrameTimer::new();
     timer.is_sleep_enabled = false;

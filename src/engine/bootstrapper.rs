@@ -1,33 +1,34 @@
 use std::error::Error;
-
 use sdl2::{
     Sdl,
     video::Window
 };
-
+use sdl2_extras::{
+    adapters::CanvasAdapter
+};
+use specs::World;
 use {
-    engine::Context,
-    resources::Cursor
+    resources::{Cursor, WindowSize}
 };
 
-pub struct Bootstrapper {
-
-}
+pub struct Bootstrapper;
 
 impl Bootstrapper {
-    pub fn initialize<'a>() -> Result<Context<'a>, Box<Error>> {
+    pub fn initialize<'a>() -> Result<World, Box<Error>> {
         let sdl_context = sdl2::init()?;
+
         let window = create_window(&sdl_context)?;
+        let window_size = WindowSize(window.size());
+        
+        let canvas = window.into_canvas().build()?;
+        let canvas = CanvasAdapter::new(Some(canvas));
+
         let cursor = Cursor::new(sdl_context.mouse());
+        cursor.hide_system();
 
-        let context = Context {
-            sdl_context,
-            window,
-            cursor,
-            _marker: std::marker::PhantomData
-        };
+        let mut world = World::new();
 
-        Ok(context)
+        Ok(world)
     }
 }
 
