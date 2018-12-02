@@ -7,7 +7,7 @@ use std::{
     error::Error,
     time::Duration
 };
-use specs::{ Builder, DispatcherBuilder, World };
+use specs::{ Builder, DispatcherBuilder };
 use sdl2::{
     event::Event,
     keyboard::Keycode,
@@ -15,6 +15,7 @@ use sdl2::{
     rect::Point
 };
 use sdl2_extras::{
+    adapters::CanvasAdapter,
     common::GameTime,
     managers::{FontManager, TextureManager},
     fspecs::WorldExt
@@ -24,27 +25,23 @@ use {
     common::{ FontType, FrameTimer },
     components::{ Draw, Position, Size, Text, Velocity, FPS },
     extensions::ResultExt,
+    resources::EventManager,
     systems::{ DrawSystem, TextRenderSystem, UpdatePos, FpsCounter }
 };
 
 pub fn start() -> Result<(), Box<Error>> {
-    let mut context = Bootstrapper::initialize()
+    let mut world = Bootstrapper::initialize()
         .on_success(|_| trace!("{}", "Engine initialization succeeded!".green()))
         .on_error(|e| error!("Engine initialization error: {}", e))?;
     
-    context.cursor.hide_system();
-
-    let mut event_pump = context.sdl_context.event_pump()?;
     let font_context = sdl2::ttf::init()?;
     let mut font_manager = FontManager::new(&font_context);
     font_manager.load(&FontType::SpaceMonoRegular24.get_details())?;
 
-    let text_builder = TextBuilder::new(context.canvas.borrow().unwrap(), &mut font_manager);
+    let text_builder = TextBuilder::new(world.write_resource::<CanvasAdapter>().borrow().unwrap(), &mut font_manager);
     let font_color = Color::RGB(255, 255, 255);
 
     // ECS
-
-    let mut world = World::new();
     world.register::<Position>();
     world.register::<Velocity>();
     world.register::<Draw>();
@@ -53,9 +50,6 @@ pub fn start() -> Result<(), Box<Error>> {
     world.register::<FPS>();
 
     world.add_resource(GameTime::default());
-    // world.add_resource(&context.window_data);
-    // world.add_resource(&context.canvas);
-    world.add_resource(context);
 
     world.proceed_on_canvas(|canvas| {
         canvas.set_draw_color(Color::RGB(0, 255, 255));
@@ -128,7 +122,7 @@ pub fn start() -> Result<(), Box<Error>> {
 
         i = (i + 1) % 255;
 
-        for event in event_pump.poll_iter() {
+        for event in world.write_resource::<EventManager>().poll_iter() {
             match event {
                 Event::Quit { .. }
                 | Event::KeyDown {

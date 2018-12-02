@@ -8,7 +8,7 @@ use sdl2_extras::{
 };
 use specs::World;
 use {
-    resources::{Cursor, WindowSize}
+    resources::{Cursor, WindowSize, EventManager}
 };
 
 pub struct Bootstrapper;
@@ -21,12 +21,18 @@ impl Bootstrapper {
         let window_size = WindowSize(window.size());
         
         let canvas = window.into_canvas().build()?;
-        let canvas = CanvasAdapter::new(Some(canvas));
+        let canvas_adapter = CanvasAdapter::new(Some(canvas));
+        
+        let event_manager = EventManager::new(&sdl_context)?;
 
-        let cursor = Cursor::new(sdl_context.mouse());
+        let mut cursor = Cursor::new(sdl_context.mouse());
         cursor.hide_system();
 
         let mut world = World::new();
+        world.add_resource(window_size);
+        world.add_resource(canvas_adapter);
+        world.add_resource(event_manager);
+        world.add_resource(cursor);
 
         Ok(world)
     }

@@ -7,6 +7,9 @@ pub struct Cursor {
     mouse: Option<MouseUtil>
 }
 
+unsafe impl Send for Cursor {}
+unsafe impl Sync for Cursor {}
+
 impl Cursor {
     pub fn new(mouse: MouseUtil) -> Cursor {
         Cursor {
