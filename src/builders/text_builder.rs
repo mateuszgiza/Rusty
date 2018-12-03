@@ -1,3 +1,4 @@
+use specs::World;
 use sdl2::render::TextureQuery;
 use sdl2::pixels::Color;
 use sdl2::render::Texture;
@@ -7,6 +8,7 @@ use sdl2::video::WindowContext;
 use sdl2::render::TextureCreator;
 use sdl2_extras::common::FontDetails;
 use sdl2_extras::managers::FontManager;
+use sdl2_extras::fspecs::WorldExt;
 
 pub struct TextTexture<'a> {
     pub texture: Texture<'a>,
@@ -31,6 +33,16 @@ pub struct TextBuilder<'f, 'fm: 'f> {
 }
 
 impl<'f, 'fm> TextBuilder<'f, 'fm> {
+    pub fn __new(world: &World) -> Self {
+        let texture_creator = world.get_texture_creator().unwrap();
+        let font_manager = world.write_resource::<FontManager>();
+
+        TextBuilder {
+            texture_creator,
+            font_manager
+        }
+    }
+
     pub fn new(canvas: &Canvas<Window>, font_manager: &'f mut FontManager<'fm>) -> Self {
         let texture_creator = canvas.texture_creator();
 
