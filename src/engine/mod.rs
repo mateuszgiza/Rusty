@@ -104,7 +104,6 @@ pub fn start() -> Result<(), Box<Error>> {
 
     // end ECS
 
-    //let mut i = 0;
     let mut timer = FrameTimer::new();
     timer.is_sleep_enabled = false;
     let mut fps_manager = sdl2::gfx::framerate::FPSManager::new();
@@ -119,8 +118,6 @@ pub fn start() -> Result<(), Box<Error>> {
 
     'running: loop {
         world.update_delta_time(timer.elapsed_time());
-
-        //i = (i + 1) % 255;
 
         for event in world.write_resource::<EventManager>().poll_iter() {
             match event {
@@ -138,7 +135,6 @@ pub fn start() -> Result<(), Box<Error>> {
         }
 
         world.proceed_on_canvas(|canvas| {
-            //canvas.set_draw_color(Color::RGB(i, 64, 255 - i));
             canvas.set_draw_color(Color::RGB(39, 58, 93));
             canvas.clear();
         }).discard_result();
