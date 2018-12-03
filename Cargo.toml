@@ -12,6 +12,7 @@ specs-derive = "0.3.0"
 colored = "1.6.1"
 log = "0.4"
 pretty_env_logger = "0.2.5"
+floating-duration = "0.1.2"
 
 [dependencies.sdl2]
     version = "0.31"

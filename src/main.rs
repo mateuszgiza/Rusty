@@ -1,5 +1,6 @@
 extern crate chrono;
 extern crate colored;
+extern crate floating_duration;
 extern crate lazy_static;
 extern crate log;
 extern crate pretty_env_logger;
