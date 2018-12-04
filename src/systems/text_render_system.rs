@@ -1,24 +1,28 @@
+use sdl2_extras::managers::FontManager;
+use sdl2::pixels::Color;
+use sdl2_extras::common::FontDetails;
 use specs::{ System, Write, ReadStorage };
 use builders::{ TextBuilder };
 use components::{ Position, Text };
 use sdl2_extras::adapters::CanvasAdapter;
 use extensions::ResultExt;
 
-pub struct TextRenderSystem<'b, 'fm: 'b> {
-    text_builder: TextBuilder<'b, 'fm>
+pub struct TextRenderSystem<'b> {
+    text_builder: TextBuilder<'b>
 }
 
-impl<'b, 'fm> TextRenderSystem<'b, 'fm> {
-    pub fn new(text_builder: TextBuilder<'b, 'fm>) -> Self {
+impl<'b> TextRenderSystem<'b> {
+    pub fn new(text_builder: TextBuilder<'b>) -> Self {
         TextRenderSystem {
             text_builder: text_builder
         }
     }
 }
 
-impl<'a, 'b, 'fm> System<'a> for TextRenderSystem<'b, 'fm> {
+impl<'a, 'b> System<'a> for TextRenderSystem<'b> {
     type SystemData = (
         Write<'a, CanvasAdapter>,
+        Write<'a, FontManager<'a>>,
         ReadStorage<'a, Text>,
         ReadStorage<'a, Position>
     );
@@ -39,5 +43,17 @@ impl<'a, 'b, 'fm> System<'a> for TextRenderSystem<'b, 'fm> {
                 canvas.copy(&texture, None, Some(message_target)).expect("could not copy texture to canvas");
             }).discard_result();
         }
+    }
+}
+
+impl<'b> TextRenderSystem<'b> {
+    pub fn build_text<'a>(&'a mut self, text: &str, font_details: &FontDetails, color: &Color) -> TextTexture<'a> {
+        let font = self.font_manager.load(font_details).unwrap();
+        let text_render = font.render(text);
+        let text_surface = text_render.solid(*color).unwrap();
+        let text_texture = self.texture_creator.create_texture_from_surface(text_surface).unwrap();
+        let text_query = text_texture.query();
+
+        return TextTexture::new(text_texture, text_query);
     }
 }

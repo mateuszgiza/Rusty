@@ -38,7 +38,8 @@ pub fn start() -> Result<(), Box<Error>> {
     let mut font_manager = FontManager::new(&font_context);
     font_manager.load(&FontType::SpaceMonoRegular24.get_details())?;
 
-    let text_builder = TextBuilder::new(world.write_resource::<CanvasAdapter>().borrow().unwrap(), &mut font_manager);
+    // let text_builder = TextBuilder::new(world.write_resource::<CanvasAdapter>().borrow().unwrap(), &mut font_manager);
+    let text_builder = TextBuilder::__new(&mut world);
     let font_color = Color::RGB(255, 255, 255);
 
     // ECS
