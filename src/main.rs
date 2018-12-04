@@ -9,7 +9,6 @@ extern crate sdl2_extras;
 extern crate specs;
 #[macro_use] extern crate specs_derive;
 
-mod builders;
 mod common;
 mod components;
 mod engine;

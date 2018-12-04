@@ -15,13 +15,10 @@ use sdl2::{
     rect::Point
 };
 use sdl2_extras::{
-    adapters::{CanvasAdapter, ResourceFacade},
-    common::GameTime,
-    managers::{FontManager, TextureManager},
+    managers::TextureManager,
     fspecs::WorldExt
 };
 use {
-    builders::TextBuilder,
     common::{ FontType, FrameTimer },
     components::{ Draw, Position, Size, Text, Velocity, FPS },
     extensions::ResultExt,
@@ -30,19 +27,10 @@ use {
 };
 
 pub fn start() -> Result<(), Box<Error>> {
-    let mut world = Bootstrapper::initialize()
+    let context = Bootstrapper::initialize()
         .on_success(|_| trace!("{}", "Engine initialization succeeded!".green()))
         .on_error(|e| error!("Engine initialization error: {}", e))?;
-    
-    let font_context = sdl2::ttf::init()?;
-    let mut font_manager = FontManager::new(&font_context);
-    font_manager.load(&FontType::SpaceMonoRegular24.get_details())?;
-    let texture_creator = world.get_texture_creator()?;
-
-    // let text_builder = TextBuilder::new(world.write_resource::<CanvasAdapter>().borrow().unwrap(), &mut font_manager);
-    let resource_facade = ResourceFacade::new(&font_context, &texture_creator);
-    // let text_builder = TextBuilder::__new(&mut world);
-    let font_color = Color::RGB(255, 255, 255);
+    let mut world = Bootstrapper::create_world(context)?;
 
     // ECS
     world.register::<Position>();
@@ -52,15 +40,16 @@ pub fn start() -> Result<(), Box<Error>> {
     world.register::<Text>();
     world.register::<FPS>();
 
-    world.add_resource(GameTime::default());
-
     world.proceed_on_canvas(|canvas| {
         canvas.set_draw_color(Color::RGB(0, 255, 255));
         canvas.clear();
         canvas.present();
     }).discard_result();
 
+    let texture_creator = world.get_texture_creator()?;
     let mut texture_manager = TextureManager::new(&texture_creator);
+
+    let font_color = Color::RGB(255, 255, 255);
 
     world
         .create_entity()
