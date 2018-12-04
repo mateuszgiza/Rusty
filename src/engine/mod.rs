@@ -15,7 +15,7 @@ use sdl2::{
     rect::Point
 };
 use sdl2_extras::{
-    adapters::CanvasAdapter,
+    adapters::{CanvasAdapter, ResourceFacade},
     common::GameTime,
     managers::{FontManager, TextureManager},
     fspecs::WorldExt
@@ -37,9 +37,11 @@ pub fn start() -> Result<(), Box<Error>> {
     let font_context = sdl2::ttf::init()?;
     let mut font_manager = FontManager::new(&font_context);
     font_manager.load(&FontType::SpaceMonoRegular24.get_details())?;
+    let texture_creator = world.get_texture_creator()?;
 
     // let text_builder = TextBuilder::new(world.write_resource::<CanvasAdapter>().borrow().unwrap(), &mut font_manager);
-    let text_builder = TextBuilder::__new(&mut world);
+    let resource_facade = ResourceFacade::new(&font_context, &texture_creator);
+    // let text_builder = TextBuilder::__new(&mut world);
     let font_color = Color::RGB(255, 255, 255);
 
     // ECS
@@ -58,7 +60,6 @@ pub fn start() -> Result<(), Box<Error>> {
         canvas.present();
     }).discard_result();
 
-    let texture_creator = world.get_texture_creator()?;
     let mut texture_manager = TextureManager::new(&texture_creator);
 
     world
@@ -100,7 +101,7 @@ pub fn start() -> Result<(), Box<Error>> {
         .with(FpsCounter::new(), "fps_counter", &[])
         .with(UpdatePos, "update_pos", &[])
         .with(DrawSystem, "draw_system", &["update_pos"])
-        .with_thread_local(TextRenderSystem::new(text_builder))
+        .with_thread_local(TextRenderSystem)
         .build();
 
     // end ECS

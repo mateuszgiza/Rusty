@@ -1,28 +1,18 @@
-use sdl2_extras::managers::FontManager;
 use sdl2::pixels::Color;
 use sdl2_extras::common::FontDetails;
 use specs::{ System, Write, ReadStorage };
 use builders::{ TextBuilder };
 use components::{ Position, Text };
-use sdl2_extras::adapters::CanvasAdapter;
+use sdl2_extras::adapters::{CanvasAdapter, ResourceFacade};
 use extensions::ResultExt;
+use sdl2_extras::common::TextTexture;
 
-pub struct TextRenderSystem<'b> {
-    text_builder: TextBuilder<'b>
-}
+pub struct TextRenderSystem;
 
-impl<'b> TextRenderSystem<'b> {
-    pub fn new(text_builder: TextBuilder<'b>) -> Self {
-        TextRenderSystem {
-            text_builder: text_builder
-        }
-    }
-}
-
-impl<'a, 'b> System<'a> for TextRenderSystem<'b> {
+impl<'a, 'b: 'a> System<'a> for TextRenderSystem {
     type SystemData = (
         Write<'a, CanvasAdapter>,
-        Write<'a, FontManager<'a>>,
+        Write<'a, ResourceFacade<'b>>,
         ReadStorage<'a, Text>,
         ReadStorage<'a, Position>
     );
@@ -46,7 +36,7 @@ impl<'a, 'b> System<'a> for TextRenderSystem<'b> {
     }
 }
 
-impl<'b> TextRenderSystem<'b> {
+impl TextRenderSystem {
     pub fn build_text<'a>(&'a mut self, text: &str, font_details: &FontDetails, color: &Color) -> TextTexture<'a> {
         let font = self.font_manager.load(font_details).unwrap();
         let text_render = font.render(text);
