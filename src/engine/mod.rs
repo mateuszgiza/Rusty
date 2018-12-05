@@ -1,5 +1,4 @@
 mod bootstrapper;
-use self::bootstrapper::Bootstrapper;
 
 use colored::*;
 use log::{trace, info, warn, error};
@@ -27,10 +26,10 @@ use {
 };
 
 pub fn start() -> Result<(), Box<Error>> {
-    let context = Bootstrapper::initialize()
+    let context = bootstrapper::initialize()
         .on_success(|_| trace!("{}", "Engine initialization succeeded!".green()))
         .on_error(|e| error!("Engine initialization error: {}", e))?;
-    let mut world = Bootstrapper::create_world(context)?;
+    let mut world = bootstrapper::create_world(context)?;
 
     // ECS
     world.register::<Position>();
