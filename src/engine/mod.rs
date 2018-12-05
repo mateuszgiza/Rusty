@@ -89,7 +89,7 @@ pub fn start() -> Result<(), Box<Error>> {
         .with(FpsCounter::new(), "fps_counter", &[])
         .with(UpdatePos, "update_pos", &[])
         .with(DrawSystem, "draw_system", &["update_pos"])
-        .with_thread_local(TextRenderSystem)
+        .with(TextRenderSystem, "text_render", &[])
         .build();
 
     // end ECS
