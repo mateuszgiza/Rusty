@@ -24,7 +24,7 @@ struct GameContext(
 unsafe impl Send for GameContext {}
 unsafe impl Sync for GameContext {}
 
-pub type InitializationContext = (
+pub struct InitializationContext(
     CanvasAdapter,
     WindowSize,
     EventManager,
@@ -59,9 +59,10 @@ fn initialize_game() -> Result<GameContext, Box<Error>> {
 
 pub fn initialize() -> Result<InitializationContext, Box<Error>> {
     let SdlInitializationContext(ref sdl_context, ref font_context) = *sdl_contexts;
+    let GameContext(ref window_size, ref canvas, ref texture_creator) = *game_context;
     
-    let window_size = game_context.0.lock().unwrap().take().unwrap();
-    let canvas = game_context.1.lock().unwrap().take();
+    let window_size = window_size.lock().unwrap().take().unwrap();
+    let canvas = canvas.lock().unwrap().take();
 
     let canvas_adapter = CanvasAdapter::new(canvas);
     let event_manager = EventManager::new(&sdl_context)?;
@@ -69,9 +70,9 @@ pub fn initialize() -> Result<InitializationContext, Box<Error>> {
     let mut cursor = Cursor::new(sdl_context.mouse());
     cursor.hide_system();
 
-    let resource_facade = ResourceFacade::new(&font_context, &game_context.2);
+    let resource_facade = ResourceFacade::new(&font_context, &texture_creator);
 
-    Ok((
+    Ok(InitializationContext(
         canvas_adapter,
         window_size,
         event_manager,
@@ -81,13 +82,21 @@ pub fn initialize() -> Result<InitializationContext, Box<Error>> {
 }
 
 pub fn create_world(context: InitializationContext) -> Result<World, Box<Error>> {
+    let InitializationContext(
+        canvas_adapter,
+        windows_size,
+        event_manager,
+        cursor,
+        resource_facade
+    ) = context;
+
     let mut world = World::new();
 
-    world.add_resource(context.0);
-    world.add_resource(context.1);
-    world.add_resource(context.2);
-    world.add_resource(context.3);
-    world.add_resource(context.4);
+    world.add_resource(canvas_adapter);
+    world.add_resource(windows_size);
+    world.add_resource(event_manager);
+    world.add_resource(cursor);
+    world.add_resource(resource_facade);
     world.add_resource(GameTime::default());
 
     Ok(world)
