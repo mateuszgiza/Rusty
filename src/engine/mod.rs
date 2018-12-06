@@ -8,8 +8,6 @@ use std::{
 };
 use specs::{ Builder, DispatcherBuilder };
 use sdl2::{
-    event::Event,
-    keyboard::Keycode,
     pixels::Color,
     rect::Point
 };
@@ -21,7 +19,7 @@ use {
     common::{ FontType, FrameTimer },
     components::{ Draw, Position, Size, Text, Velocity, FPS },
     extensions::ResultExt,
-    resources::EventManager,
+    managers::{EventManager, EventProcessStatus},
     systems::{ DrawSystem, TextRenderSystem, UpdatePos, FpsCounter }
 };
 
@@ -109,19 +107,9 @@ pub fn start() -> Result<(), Box<Error>> {
     'running: loop {
         world.update_delta_time(timer.elapsed_time());
 
-        for event in world.write_resource::<EventManager>().poll_iter() {
-            match event {
-                Event::Quit { .. }
-                | Event::KeyDown {
-                    keycode: Some(Keycode::Escape),
-                    ..
-                } => break 'running,
-                Event::MouseMotion { x, y, .. } => {
-                    cursor_rect.set_x(x);
-                    cursor_rect.set_y(y);
-                }
-                _ => {}
-            }
+        let event_process_result = world.write_resource::<EventManager>().process_events();
+        if let EventProcessStatus::Exit = event_process_result {
+            break 'running;
         }
 
         world.proceed_on_canvas(|canvas| {

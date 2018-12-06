@@ -1,5 +1,5 @@
 use lazy_static::lazy_static;
-use resources::{Cursor, EventManager, WindowSize};
+use resources::{Cursor, WindowSize};
 use sdl2::render::Canvas;
 use sdl2::render::TextureCreator;
 use sdl2::video::WindowContext;
@@ -11,6 +11,7 @@ use sdl2_extras::{
 use specs::World;
 use std::error::Error;
 use std::sync::Mutex;
+use managers::EventManager;
 
 struct SdlInitializationContext(Sdl, Sdl2TtfContext);
 unsafe impl Send for SdlInitializationContext {}

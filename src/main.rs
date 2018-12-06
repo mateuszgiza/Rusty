@@ -13,6 +13,7 @@ mod common;
 mod components;
 mod engine;
 mod extensions;
+mod managers;
 mod resources;
 mod systems;
 
