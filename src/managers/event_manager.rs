@@ -2,12 +2,13 @@ use std::collections::HashMap;
 use sdl2::{
     Sdl,
     EventPump,
-    event::{Event, EventType},
-    keyboard::Keycode,
+    event::{Event, EventType}
 };
 use std::error::Error;
-use std::borrow::Borrow;
 
+pub type EventHandler = Box<Fn(&Event) -> EventProcessStatus>;
+
+#[allow(dead_code)]
 pub enum EventProcessStatus {
     Ok,
     Exit,
@@ -16,7 +17,7 @@ pub enum EventProcessStatus {
 
 pub struct EventManager {
     event_pump: EventPump,
-    registered_handlers: HashMap<EventType, Vec<Box<Fn(&Event)>>>
+    registered_handlers: HashMap<EventType, Vec<EventHandler>>
 }
 
 unsafe impl Send for EventManager {}
@@ -31,7 +32,7 @@ impl EventManager {
         Ok(event_manager)
     }
 
-    pub fn register<T>(&mut self, event_type: EventType, handler: Box<Fn(&Event)>) {
+    pub fn register(&mut self, event_type: EventType, handler: EventHandler) {
         let handlers = self.get_event_handlers(event_type);
         handlers.push(handler);
     }
@@ -42,14 +43,18 @@ impl EventManager {
         for event in event_iterator {
             let event_type = Self::get_event_type(&event);
             if event_type.is_none() {
-                return EventProcessStatus::UnknownEventType;
+                //return EventProcessStatus::UnknownEventType;
+                continue;
             }
 
             let event_type = event_type.unwrap();
             if self.registered_handlers.contains_key(&event_type) {
-                let handlers = self.get_event_handlers(event_type);
+                let handlers = self.registered_handlers.get(&event_type).unwrap();
                 for handler in handlers {
-                    handler(&event);
+                    let result = handler(&event);
+                    if let EventProcessStatus::Exit = result {
+                        return result;
+                    }
                 }
             }
         }
@@ -57,7 +62,7 @@ impl EventManager {
         EventProcessStatus::Ok
     }
 
-    fn get_event_handlers(&mut self, event_type: EventType) -> &mut Vec<Box<Fn(&Event)>> {
+    fn get_event_handlers(&mut self, event_type: EventType) -> &mut Vec<EventHandler> {
         self.registered_handlers.entry(event_type).or_insert(vec![])
     }
 

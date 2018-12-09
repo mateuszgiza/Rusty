@@ -9,7 +9,9 @@ use std::{
 use specs::{ Builder, DispatcherBuilder };
 use sdl2::{
     pixels::Color,
-    rect::Point
+    rect::Point,
+    event::{Event, EventType},
+    keyboard::Keycode
 };
 use sdl2_extras::{
     managers::TextureManager,
@@ -102,14 +104,20 @@ pub fn start() -> Result<(), Box<Error>> {
         .discard_result();
 
     let image_texture = texture_manager.load("cursor.png").on_error(|_| error!("Could not load cursor file!"))?;
-    let mut cursor_rect = sdl2::rect::Rect::new(0, 0, 32, 32);
+    let cursor_rect = sdl2::rect::Rect::new(0, 0, 32, 32);
 
     'running: loop {
         world.update_delta_time(timer.elapsed_time());
 
-        let event_process_result = world.write_resource::<EventManager>().process_events();
-        if let EventProcessStatus::Exit = event_process_result {
-            break 'running;
+        {
+            let mut event_manager = world.write_resource::<EventManager>();
+            event_manager.register(EventType::Quit, Box::new(on_quit));
+            event_manager.register(EventType::KeyDown, Box::new(on_quit));
+
+            let event_process_result = event_manager.process_events();
+            if let EventProcessStatus::Exit = event_process_result {
+                break 'running;
+            }
         }
 
         world.proceed_on_canvas(|canvas| {
@@ -132,4 +140,15 @@ pub fn start() -> Result<(), Box<Error>> {
     }
 
     Ok(())
+}
+
+fn on_quit(event: &Event) -> EventProcessStatus {
+    if let Event::Quit {..} = event {
+        return EventProcessStatus::Exit;
+    }
+    else if let Event::KeyDown { keycode: Some(Keycode::Escape), .. } = event {
+        return EventProcessStatus::Exit;
+    }
+
+    EventProcessStatus::Ok
 }
