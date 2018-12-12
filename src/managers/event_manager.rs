@@ -6,7 +6,11 @@ use sdl2::{
 };
 use std::error::Error;
 
-pub type EventHandler = Box<Fn(&Event) -> EventProcessStatus>;
+pub trait EventState {
+    fn setEvent(&self, event: Event);
+}
+
+pub type EventHandler = Box<Fn(&EventState, &Event) -> EventProcessStatus>;
 
 #[allow(dead_code)]
 pub enum EventProcessStatus {
@@ -51,7 +55,8 @@ impl EventManager {
             if self.registered_handlers.contains_key(&event_type) {
                 let handlers = self.registered_handlers.get(&event_type).unwrap();
                 for handler in handlers {
-                    let result = handler(&event);
+                    let event_state = EmptyState;
+                    let result = handler(&event_state, &event);
                     if let EventProcessStatus::Exit = result {
                         return result;
                     }
@@ -73,5 +78,12 @@ impl EventManager {
             Event::MouseMotion {..} => Some(EventType::MouseMotion),
             _ => None
         }
+    }
+}
+
+pub struct EmptyState;
+impl EventState for EmptyState {
+    fn setEvent(&self, event: Event) {
+        //
     }
 }

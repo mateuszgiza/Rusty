@@ -21,7 +21,7 @@ use {
     common::{ FontType, FrameTimer },
     components::{ Draw, Position, Size, Text, Velocity, FPS },
     extensions::ResultExt,
-    managers::{EventManager, EventProcessStatus},
+    managers::{EventManager, EventProcessStatus, EventState},
     systems::{ DrawSystem, TextRenderSystem, UpdatePos, FpsCounter }
 };
 
@@ -142,7 +142,7 @@ pub fn start() -> Result<(), Box<Error>> {
     Ok(())
 }
 
-fn on_quit(event: &Event) -> EventProcessStatus {
+fn on_quit(state: &EventState, event: &Event) -> EventProcessStatus {
     if let Event::Quit {..} = event {
         return EventProcessStatus::Exit;
     }
@@ -151,4 +151,16 @@ fn on_quit(event: &Event) -> EventProcessStatus {
     }
 
     EventProcessStatus::Ok
+}
+
+fn event_handler_cursor_move(state: &EventState, event: &Event) -> EventProcessStatus {
+    if let Event::MouseMotion {x, y, ..} = event {
+        //
+    }
+
+    EventProcessStatus::Ok
+}
+
+pub enum GameEvent {
+    CursorMove {x: i32, y: i32},
 }
