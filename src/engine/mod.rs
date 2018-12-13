@@ -6,7 +6,7 @@ use std::{
     error::Error,
     time::Duration
 };
-use specs::{ Builder, DispatcherBuilder };
+use specs::{ Builder, DispatcherBuilder, Write };
 use sdl2::{
     pixels::Color,
     rect::Point,
@@ -21,7 +21,7 @@ use {
     common::{ FontType, FrameTimer },
     components::{ Draw, Position, Size, Text, Velocity, FPS },
     extensions::ResultExt,
-    managers::{EventManager, EventProcessStatus, EventState},
+    managers::{EventManager, EventProcessStatus, EventState, GameEvent, GameEventType},
     systems::{ DrawSystem, TextRenderSystem, UpdatePos, FpsCounter }
 };
 
@@ -105,19 +105,24 @@ pub fn start() -> Result<(), Box<Error>> {
 
     let image_texture = texture_manager.load("cursor.png").on_error(|_| error!("Could not load cursor file!"))?;
     let cursor_rect = sdl2::rect::Rect::new(0, 0, 32, 32);
+    
+    {
+        let mut event_manager = world.write_resource::<EventManager>();
+        event_manager.register(EventType::Quit, Box::new(on_quit));
+        event_manager.register(EventType::KeyDown, Box::new(on_quit));
+        event_manager.register(EventType::MouseMotion, Box::new(event_handler_cursor_move));
+    }
 
     'running: loop {
         world.update_delta_time(timer.elapsed_time());
 
-        {
-            let mut event_manager = world.write_resource::<EventManager>();
-            event_manager.register(EventType::Quit, Box::new(on_quit));
-            event_manager.register(EventType::KeyDown, Box::new(on_quit));
+        let event_process_result = world.exec(|(mut event_state, mut event_manager): (Write<EventState>, Write<EventManager>)| {
+            info!("{}", event_state.size());
+            event_manager.process_events(&mut event_state)
+        });
 
-            let event_process_result = event_manager.process_events();
-            if let EventProcessStatus::Exit = event_process_result {
-                break 'running;
-            }
+        if let EventProcessStatus::Exit = event_process_result {
+            break 'running;
         }
 
         world.proceed_on_canvas(|canvas| {
@@ -137,12 +142,14 @@ pub fn start() -> Result<(), Box<Error>> {
 
         timer.update();
         fps_manager.delay();
+
+        world.write_resource::<EventState>().clear_events();
     }
 
     Ok(())
 }
 
-fn on_quit(state: &EventState, event: &Event) -> EventProcessStatus {
+fn on_quit(state: &mut EventState, event: &Event) -> EventProcessStatus {
     if let Event::Quit {..} = event {
         return EventProcessStatus::Exit;
     }
@@ -153,14 +160,11 @@ fn on_quit(state: &EventState, event: &Event) -> EventProcessStatus {
     EventProcessStatus::Ok
 }
 
-fn event_handler_cursor_move(state: &EventState, event: &Event) -> EventProcessStatus {
+fn event_handler_cursor_move(state: &mut EventState, event: &Event) -> EventProcessStatus {
     if let Event::MouseMotion {x, y, ..} = event {
-        //
+        state.set_event(GameEventType::CursorMove, GameEvent::CursorMove { x: *x, y: *y });
     }
 
     EventProcessStatus::Ok
 }
 
-pub enum GameEvent {
-    CursorMove {x: i32, y: i32},
-}

@@ -6,11 +6,7 @@ use sdl2::{
 };
 use std::error::Error;
 
-pub trait EventState {
-    fn setEvent(&self, event: Event);
-}
-
-pub type EventHandler = Box<Fn(&EventState, &Event) -> EventProcessStatus>;
+pub type EventHandler = Box<Fn(&mut EventState, &Event) -> EventProcessStatus>;
 
 #[allow(dead_code)]
 pub enum EventProcessStatus {
@@ -19,8 +15,9 @@ pub enum EventProcessStatus {
     UnknownEventType
 }
 
+#[derive(Default)]
 pub struct EventManager {
-    event_pump: EventPump,
+    event_pump: Option<EventPump>,
     registered_handlers: HashMap<EventType, Vec<EventHandler>>
 }
 
@@ -30,7 +27,7 @@ unsafe impl Sync for EventManager {}
 impl EventManager {
     pub fn new(sdl_context: &Sdl) -> Result<Self, Box<Error>> {
         let event_manager = EventManager {
-            event_pump: sdl_context.event_pump()?,
+            event_pump: Some(sdl_context.event_pump()?),
             registered_handlers: HashMap::new()
         };
         Ok(event_manager)
@@ -41,8 +38,8 @@ impl EventManager {
         handlers.push(handler);
     }
 
-    pub fn process_events(&mut self) -> EventProcessStatus {
-        let event_iterator = self.event_pump.poll_iter();
+    pub fn process_events(&mut self, event_state: &mut EventState) -> EventProcessStatus {
+        let event_iterator = self.event_pump.as_mut().unwrap().poll_iter();
 
         for event in event_iterator {
             let event_type = Self::get_event_type(&event);
@@ -55,8 +52,7 @@ impl EventManager {
             if self.registered_handlers.contains_key(&event_type) {
                 let handlers = self.registered_handlers.get(&event_type).unwrap();
                 for handler in handlers {
-                    let event_state = EmptyState;
-                    let result = handler(&event_state, &event);
+                    let result = handler(event_state, &event);
                     if let EventProcessStatus::Exit = result {
                         return result;
                     }
@@ -81,9 +77,39 @@ impl EventManager {
     }
 }
 
-pub struct EmptyState;
-impl EventState for EmptyState {
-    fn setEvent(&self, event: Event) {
-        //
+#[derive(Default)]
+pub struct EventState {
+    game_events: HashMap<GameEventType, GameEvent>,
+}
+
+unsafe impl Send for EventState {}
+unsafe impl Sync for EventState {}
+
+impl EventState {
+    pub fn new() -> Self {
+        EventState {
+            game_events: HashMap::new(),
+        }
     }
+
+    pub fn set_event(&mut self, event_type: GameEventType, game_event: GameEvent) {
+        self.game_events.insert(event_type, game_event);
+    }
+
+    pub fn clear_events(&mut self) {
+        self.game_events.clear();
+    }
+
+    pub fn size(&self) -> usize {
+        self.game_events.len()
+    }
+}
+
+#[derive(PartialEq, Eq, Hash)]
+pub enum GameEventType {
+    CursorMove,
+}
+
+pub enum GameEvent {
+    CursorMove { x: i32, y: i32 },
 }

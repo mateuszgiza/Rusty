@@ -11,7 +11,7 @@ use sdl2_extras::{
 use specs::World;
 use std::error::Error;
 use std::sync::Mutex;
-use managers::EventManager;
+use managers::*;
 
 struct SdlInitializationContext(Sdl, Sdl2TtfContext);
 unsafe impl Send for SdlInitializationContext {}
@@ -99,6 +99,7 @@ pub fn create_world(context: InitializationContext) -> Result<World, Box<Error>>
     world.add_resource(cursor);
     world.add_resource(resource_facade);
     world.add_resource(GameTime::default());
+    world.add_resource(EventState::new());
 
     Ok(world)
 }
