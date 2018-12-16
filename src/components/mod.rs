@@ -1,3 +1,6 @@
+mod cursor;
+pub use self::cursor::Cursor;
+
 mod draw;
 pub use self::draw::Draw;
 
@@ -15,3 +18,6 @@ pub use self::text::Text;
 
 mod velocity;
 pub use self::velocity::Velocity;
+
+mod sprite;
+pub use self::sprite::Sprite;

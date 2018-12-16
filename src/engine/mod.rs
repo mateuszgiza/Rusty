@@ -13,16 +13,13 @@ use sdl2::{
     event::{Event, EventType},
     keyboard::Keycode
 };
-use sdl2_extras::{
-    managers::TextureManager,
-    fspecs::WorldExt
-};
+use sdl2_extras::fspecs::WorldExt;
 use {
     common::{ FontType, FrameTimer },
-    components::{ Draw, Position, Size, Text, Velocity, FPS },
+    components::{ Draw, Position, Size, Text, Velocity, FPS, Cursor, Sprite },
     extensions::ResultExt,
     managers::{EventManager, EventProcessStatus, EventState, GameEvent, GameEventType},
-    systems::{ DrawSystem, TextRenderSystem, UpdatePos, FpsCounter }
+    systems::{ DrawSystem, TextRenderSystem, UpdatePos, FpsCounter, CursorDrawSystem, CursorUpdateSystem }
 };
 
 pub fn start() -> Result<(), Box<Error>> {
@@ -38,6 +35,8 @@ pub fn start() -> Result<(), Box<Error>> {
     world.register::<Size>();
     world.register::<Text>();
     world.register::<FPS>();
+    world.register::<Cursor>();
+    world.register::<Sprite>();
 
     world.proceed_on_canvas(|canvas| {
         canvas.set_draw_color(Color::RGB(0, 255, 255));
@@ -45,11 +44,14 @@ pub fn start() -> Result<(), Box<Error>> {
         canvas.present();
     }).discard_result();
 
-    let texture_creator = world.get_texture_creator()?;
-    let mut texture_manager = TextureManager::new(&texture_creator);
-
     let font_color = Color::RGB(255, 255, 255);
 
+    world.create_entity()
+        .with(Cursor)
+        .with(Position {x: 0.0, y: 0.0})
+        .with(Size {width: 32, height: 32})
+        .with(Sprite {texture_name: "cursor.png".into(), color: Color::RGB(0, 0, 0)})
+        .build();
     world
         .create_entity()
         .with(Position { x: 0.0, y: 0.0 })
@@ -87,9 +89,11 @@ pub fn start() -> Result<(), Box<Error>> {
 
     let mut dispatcher = DispatcherBuilder::new()
         .with(FpsCounter::new(), "fps_counter", &[])
+        .with(CursorUpdateSystem, "cursor_update", &[])
         .with(UpdatePos, "update_pos", &[])
         .with(DrawSystem, "draw_system", &["update_pos"])
         .with(TextRenderSystem, "text_render", &[])
+        .with(CursorDrawSystem, "cursor_draw", &[])
         .build();
 
     // end ECS
@@ -102,9 +106,6 @@ pub fn start() -> Result<(), Box<Error>> {
         .on_success(|_| info!("Current framerate: {}", fps_manager.get_framerate()))
         .on_error(|_| warn!("Could not set framerate!"))
         .discard_result();
-
-    let image_texture = texture_manager.load("cursor.png").on_error(|_| error!("Could not load cursor file!"))?;
-    let cursor_rect = sdl2::rect::Rect::new(0, 0, 32, 32);
     
     {
         let mut event_manager = world.write_resource::<EventManager>();
@@ -117,7 +118,6 @@ pub fn start() -> Result<(), Box<Error>> {
         world.update_delta_time(timer.elapsed_time());
 
         let event_process_result = world.exec(|(mut event_state, mut event_manager): (Write<EventState>, Write<EventManager>)| {
-            info!("{}", event_state.size());
             event_manager.process_events(&mut event_state)
         });
 
@@ -134,9 +134,6 @@ pub fn start() -> Result<(), Box<Error>> {
         world.maintain();
 
         world.proceed_on_canvas(|canvas| {
-            canvas.copy(&image_texture, None, Some(cursor_rect))
-                .on_error(|_| warn!("Could not draw cursor on canvas!"))
-                .discard_result();
             canvas.present();
         }).discard_result();
 
@@ -149,7 +146,7 @@ pub fn start() -> Result<(), Box<Error>> {
     Ok(())
 }
 
-fn on_quit(state: &mut EventState, event: &Event) -> EventProcessStatus {
+fn on_quit(_state: &mut EventState, event: &Event) -> EventProcessStatus {
     if let Event::Quit {..} = event {
         return EventProcessStatus::Exit;
     }

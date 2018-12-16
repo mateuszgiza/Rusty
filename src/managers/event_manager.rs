@@ -96,10 +96,15 @@ impl EventState {
         self.game_events.insert(event_type, game_event);
     }
 
+    pub fn get_event(&self, event_type: GameEventType) -> Option<&GameEvent> {
+        self.game_events.get(&event_type)
+    }
+
     pub fn clear_events(&mut self) {
         self.game_events.clear();
     }
 
+    #[allow(dead_code)]
     pub fn size(&self) -> usize {
         self.game_events.len()
     }

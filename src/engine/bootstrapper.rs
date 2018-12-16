@@ -1,5 +1,5 @@
 use lazy_static::lazy_static;
-use resources::{Cursor, WindowSize};
+use resources::{CursorData, WindowSize};
 use sdl2::render::Canvas;
 use sdl2::render::TextureCreator;
 use sdl2::video::WindowContext;
@@ -29,7 +29,7 @@ pub struct InitializationContext(
     CanvasAdapter,
     WindowSize,
     EventManager,
-    Cursor,
+    CursorData,
     ResourceFacade<'static>,
 );
 
@@ -68,7 +68,7 @@ pub fn initialize() -> Result<InitializationContext, Box<Error>> {
     let canvas_adapter = CanvasAdapter::new(canvas);
     let event_manager = EventManager::new(&sdl_context)?;
 
-    let mut cursor = Cursor::new(sdl_context.mouse());
+    let mut cursor = CursorData::new(sdl_context.mouse());
     cursor.hide_system();
 
     let resource_facade = ResourceFacade::new(&font_context, &texture_creator);

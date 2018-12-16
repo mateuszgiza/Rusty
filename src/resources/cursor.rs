@@ -3,16 +3,16 @@
 use sdl2::mouse::MouseUtil;
 
 #[derive(Default)]
-pub struct Cursor {
+pub struct CursorData {
     mouse: Option<MouseUtil>
 }
 
-unsafe impl Send for Cursor {}
-unsafe impl Sync for Cursor {}
+unsafe impl Send for CursorData {}
+unsafe impl Sync for CursorData {}
 
-impl Cursor {
-    pub fn new(mouse: MouseUtil) -> Cursor {
-        Cursor {
+impl CursorData {
+    pub fn new(mouse: MouseUtil) -> CursorData {
+        CursorData {
             mouse: Some(mouse)
         }
     }
