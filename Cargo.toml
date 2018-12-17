@@ -20,6 +20,7 @@ floating-duration = "0.1.2"
     features = ["ttf","image","mixer", "gfx"]
 
 [dependencies.sdl2-extras]
-    version = "0.1.4"
+    # version = "0.1.4"
     # path = "../rust-sdl2-extras"
+    git = "https://github.com/mateuszgiza/rust-sdl2-extras"
     features = ["fspecs"]
