@@ -4,5 +4,9 @@
 			"path": "."
 		}
 	],
-	"settings": {}
+	"settings": {
+		"files.autoSave": "afterDelay",
+		"editor.wordWrapColumn": 120,
+		"rust.all_features": true
+	}
 }
