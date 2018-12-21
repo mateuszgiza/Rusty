@@ -1,25 +1,19 @@
 mod bootstrapper;
 
 use colored::*;
-use log::{trace, info, warn, error};
-use std::{
-    error::Error,
-    time::Duration
-};
-use specs::{ Builder, DispatcherBuilder, Write };
-use sdl2::{
-    pixels::Color,
-    rect::Point,
-    event::{Event, EventType},
-    keyboard::Keycode
-};
+use log::{error, info, trace, warn};
+use sdl2::{pixels::Color, rect::Point};
 use sdl2_extras::fspecs::WorldExt;
+use specs::{Builder, DispatcherBuilder, Write};
+use std::{error::Error, time::Duration};
 use {
-    common::{ FontType, FrameTimer },
-    components::{ Draw, Position, Size, Text, Velocity, FPS, Cursor, Sprite },
+    common::{FontType, FrameTimer},
+    components::{Cursor, Draw, Position, Size, Sprite, Text, Velocity, FPS},
+    configuration::Configurator,
+    events::EventState,
     extensions::ResultExt,
-    managers::{EventManager, EventProcessStatus, EventState, GameEvent, GameEventType},
-    systems::{ DrawSystem, TextRenderSystem, UpdatePos, FpsCounter, CursorDrawSystem, CursorUpdateSystem }
+    managers::{EventManager, EventProcessStatus},
+    systems::{CursorDrawSystem, CursorUpdateSystem, DrawSystem, FpsCounter, TextRenderSystem, UpdatePos},
 };
 
 pub fn start() -> Result<(), Box<Error>> {
@@ -29,29 +23,26 @@ pub fn start() -> Result<(), Box<Error>> {
     let mut world = bootstrapper::create_world(context)?;
 
     // ECS
-    world.register::<Position>();
-    world.register::<Velocity>();
-    world.register::<Draw>();
-    world.register::<Size>();
-    world.register::<Text>();
-    world.register::<FPS>();
-    world.register::<Cursor>();
-    world.register::<Sprite>();
+    Configurator::register_components(&world);
 
-    world.proceed_on_canvas(|canvas| {
-        canvas.set_draw_color(Color::RGB(0, 255, 255));
-        canvas.clear();
-        canvas.present();
-    }).discard_result();
+    world
+        .proceed_on_canvas(|canvas| {
+            canvas.set_draw_color(Color::RGB(0, 255, 255));
+            canvas.clear();
+            canvas.present();
+        }).discard_result();
 
     let font_color = Color::RGB(255, 255, 255);
 
-    world.create_entity()
+    world
+        .create_entity()
         .with(Cursor)
-        .with(Position {x: 0.0, y: 0.0})
-        .with(Size {width: 32, height: 32})
-        .with(Sprite {texture_name: "cursor.png".into(), color: Color::RGB(0, 0, 0)})
-        .build();
+        .with(Position { x: 0.0, y: 0.0 })
+        .with(Size { width: 32, height: 32 })
+        .with(Sprite {
+            texture_name: "cursor.png".into(),
+            color: Color::RGB(0, 0, 0),
+        }).build();
     world
         .create_entity()
         .with(Position { x: 0.0, y: 0.0 })
@@ -65,20 +56,16 @@ pub fn start() -> Result<(), Box<Error>> {
     world
         .create_entity()
         .with(Position { x: 4.0, y: 7.0 })
-        .with(Size {
-            width: 50,
-            height: 50,
-        }).with(Draw {
+        .with(Size { width: 50, height: 50 })
+        .with(Draw {
             color: Color::RGB(0, 255, 0),
         }).build();
     world
         .create_entity()
         .with(Position { x: 2.0, y: 5.0 })
         .with(Velocity { x: 50.0, y: 30.0 })
-        .with(Size {
-            width: 100,
-            height: 50,
-        }).with(Draw {
+        .with(Size { width: 100, height: 50 })
+        .with(Draw {
             color: Color::RGB(255, 0, 0),
         }).with(Text {
             text: "Elo xD".to_string(),
@@ -106,36 +93,35 @@ pub fn start() -> Result<(), Box<Error>> {
         .on_success(|_| info!("Current framerate: {}", fps_manager.get_framerate()))
         .on_error(|_| warn!("Could not set framerate!"))
         .discard_result();
-    
-    {
-        let mut event_manager = world.write_resource::<EventManager>();
-        event_manager.register(EventType::Quit, Box::new(on_quit));
-        event_manager.register(EventType::KeyDown, Box::new(on_quit));
-        event_manager.register(EventType::MouseMotion, Box::new(event_handler_cursor_move));
-    }
+
+    Configurator::setup_event_handlers(&world);
 
     'running: loop {
         world.update_delta_time(timer.elapsed_time());
 
-        let event_process_result = world.exec(|(mut event_state, mut event_manager): (Write<EventState>, Write<EventManager>)| {
-            event_manager.process_events(&mut event_state)
-        });
+        let event_process_result = world.exec(
+            |(mut event_state, mut event_manager): (Write<EventState>, Write<EventManager>)| {
+                event_manager.process_events(&mut event_state)
+            },
+        );
 
         if let EventProcessStatus::Exit = event_process_result {
             break 'running;
         }
 
-        world.proceed_on_canvas(|canvas| {
-            canvas.set_draw_color(Color::RGB(39, 58, 93));
-            canvas.clear();
-        }).discard_result();
+        world
+            .proceed_on_canvas(|canvas| {
+                canvas.set_draw_color(Color::RGB(39, 58, 93));
+                canvas.clear();
+            }).discard_result();
 
         dispatcher.dispatch(&mut world.res);
         world.maintain();
 
-        world.proceed_on_canvas(|canvas| {
-            canvas.present();
-        }).discard_result();
+        world
+            .proceed_on_canvas(|canvas| {
+                canvas.present();
+            }).discard_result();
 
         timer.update();
         fps_manager.delay();
@@ -145,23 +131,3 @@ pub fn start() -> Result<(), Box<Error>> {
 
     Ok(())
 }
-
-fn on_quit(_state: &mut EventState, event: &Event) -> EventProcessStatus {
-    if let Event::Quit {..} = event {
-        return EventProcessStatus::Exit;
-    }
-    else if let Event::KeyDown { keycode: Some(Keycode::Escape), .. } = event {
-        return EventProcessStatus::Exit;
-    }
-
-    EventProcessStatus::Ok
-}
-
-fn event_handler_cursor_move(state: &mut EventState, event: &Event) -> EventProcessStatus {
-    if let Event::MouseMotion {x, y, ..} = event {
-        state.set_event(GameEventType::CursorMove, GameEvent::CursorMove { x: *x, y: *y });
-    }
-
-    EventProcessStatus::Ok
-}
-

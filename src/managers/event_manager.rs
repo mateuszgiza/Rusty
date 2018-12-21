@@ -1,10 +1,11 @@
 use std::collections::HashMap;
+use std::error::Error;
 use sdl2::{
     Sdl,
     EventPump,
     event::{Event, EventType}
 };
-use std::error::Error;
+use events::EventState;
 
 pub type EventHandler = Box<Fn(&mut EventState, &Event) -> EventProcessStatus>;
 
@@ -75,46 +76,4 @@ impl EventManager {
             _ => None
         }
     }
-}
-
-#[derive(Default)]
-pub struct EventState {
-    game_events: HashMap<GameEventType, GameEvent>,
-}
-
-unsafe impl Send for EventState {}
-unsafe impl Sync for EventState {}
-
-impl EventState {
-    pub fn new() -> Self {
-        EventState {
-            game_events: HashMap::new(),
-        }
-    }
-
-    pub fn set_event(&mut self, event_type: GameEventType, game_event: GameEvent) {
-        self.game_events.insert(event_type, game_event);
-    }
-
-    pub fn get_event(&self, event_type: GameEventType) -> Option<&GameEvent> {
-        self.game_events.get(&event_type)
-    }
-
-    pub fn clear_events(&mut self) {
-        self.game_events.clear();
-    }
-
-    #[allow(dead_code)]
-    pub fn size(&self) -> usize {
-        self.game_events.len()
-    }
-}
-
-#[derive(PartialEq, Eq, Hash)]
-pub enum GameEventType {
-    CursorMove,
-}
-
-pub enum GameEvent {
-    CursorMove { x: i32, y: i32 },
 }

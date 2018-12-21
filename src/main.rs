@@ -11,8 +11,10 @@ extern crate specs;
 
 mod common;
 mod components;
+mod configuration;
 mod engine;
 mod extensions;
+mod events;
 mod managers;
 mod resources;
 mod systems;

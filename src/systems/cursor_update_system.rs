@@ -1,6 +1,6 @@
 use specs::{ System, Write, ReadStorage, WriteStorage };
 use components::{ Cursor, Position };
-use managers::{EventState, GameEvent, GameEventType};
+use events::{EventState, GameEvent, GameEventType};
 
 pub struct CursorUpdateSystem;
 

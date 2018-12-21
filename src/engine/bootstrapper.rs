@@ -11,7 +11,8 @@ use sdl2_extras::{
 use specs::World;
 use std::error::Error;
 use std::sync::Mutex;
-use managers::*;
+use managers::EventManager;
+use events::EventState;
 
 struct SdlInitializationContext(Sdl, Sdl2TtfContext);
 unsafe impl Send for SdlInitializationContext {}
