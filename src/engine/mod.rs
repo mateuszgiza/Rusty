@@ -23,7 +23,7 @@ pub fn start() -> Result<(), Box<Error>> {
     let mut world = bootstrapper::create_world(context)?;
 
     // ECS
-    Configurator::register_components(&world);
+    Configurator::register_components(&mut world);
 
     world
         .proceed_on_canvas(|canvas| {

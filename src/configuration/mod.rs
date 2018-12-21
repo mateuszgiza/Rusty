@@ -2,11 +2,12 @@ use events::handlers;
 use managers::EventManager;
 use sdl2::event::EventType;
 use specs::World;
+use components::{Cursor, Draw, Position, Size, Sprite, Text, Velocity, FPS};
 
 pub struct Configurator;
 
 impl Configurator {
-    pub fn register_components(world: &World) {
+    pub fn register_components(world: &mut World) {
         world.register::<Position>();
         world.register::<Velocity>();
         world.register::<Draw>();
